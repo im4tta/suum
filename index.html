@@ -320,6 +320,16 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px;display:grid;place-items:center;padding:13px;touch-action:none}
 .ab-body canvas{grid-area:1/1;display:block;width:100%;height:auto;max-height:56vh;object-fit:contain;border-radius:4px}
 #ov{pointer-events:none}
+.ab-body{overflow:hidden}
+.ab-body canvas,#liveLayer{transform-origin:0 0;will-change:transform}
+.ab-body.panning{cursor:grabbing}
+#liveLayer{position:absolute;pointer-events:none;overflow:visible}
+#liveLayer .lv-dev{position:absolute;left:0;top:0;transform-origin:0 0}
+#liveLayer iframe{position:absolute;border:0;background:#fff;pointer-events:auto;overflow:hidden}
+#liveLayer .lv-hw{position:absolute;background:#000;pointer-events:none}
+.ab-pill.zoom{cursor:pointer}.ab-pill.zoom:hover{color:var(--txt);border-color:var(--line2)}
+.ab-pill.live{color:#fff;background:#E5484D;border-color:#E5484D;cursor:pointer}
+
 
 .dropzone{width:100%;max-width:640px;flex:none;display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px dashed var(--line2);border-radius:13px;background:var(--panel2);color:var(--muted);cursor:pointer;transition:.16s}
 .dropzone:hover,.stage.drag .dropzone{border-color:var(--accent);background:var(--accent-soft);color:var(--txt)}
@@ -460,8 +470,8 @@ body.focus .stage-hint{opacity:.6}
       <section data-group="screens">
         <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Screenshots</div><span class="s-count" id="shotCount">0</span></div>
         <button class="addshot" id="addShot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Add screenshots (multiple)</button>
-        <form class="urlrow" id="urlForm"><input class="vinput" id="shotUrl" type="text" inputmode="url" autocomplete="url" placeholder="Website or image URL" aria-label="Website or image URL"><button class="tiny-btn" id="shotUrlGo" type="submit">Capture</button></form>
-        <p class="inline" style="margin-top:6px">Captures the page at each device’s real screen size and fits it to every device. Pages are rendered by the public microlink.io screenshot service.</p>
+        <form class="urlrow" id="urlForm"><input class="vinput" id="shotUrl" type="text" inputmode="url" autocomplete="url" placeholder="Website or image URL" aria-label="Website or image URL"><button class="tiny-btn" id="shotUrlGo" type="submit">Capture</button><button class="tiny-btn" id="shotUrlLive" type="button" title="Load the site live and interactive inside the selected device">Live</button></form>
+        <p class="inline" style="margin-top:6px"><b>Capture</b> renders the page at the selected device’s real screen size (via the public microlink.io service). <b>Live</b> opens it interactively inside the device — works with localhost dev servers; some sites block embedding.</p>
         <button class="btn-ghost" id="pasteBtn" style="width:100%;margin-top:7px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 13h6m-6 4h4"/></svg>Paste image from clipboard</button>
         <div class="shots" id="shots"></div>
         <div class="empty-hint" id="shotHint">Add images, then tap one to place it on the selected device. Or drag it onto a device in the scene.</div>
@@ -477,11 +487,12 @@ body.focus .stage-hint{opacity:.6}
         <div class="ab-bar">
           <div class="ab-lights"><i></i><i></i><i></i></div>
           <span class="ab-title" id="abTitle">iPhone 16 Pro</span>
-          <div class="ab-meta"><span class="ab-pill" id="abRatio">4:5</span><span class="ab-pill" id="abRes">1280 × 1600</span></div>
+          <div class="ab-meta"><span class="ab-pill live" id="abLive" hidden title="Exit live site (Esc)">● LIVE ✕</span><span class="ab-pill zoom" id="abZoom" title="Scroll to zoom · click to reset (0)">100%</span><span class="ab-pill" id="abRatio">4:5</span><span class="ab-pill" id="abRes">1280 × 1600</span></div>
         </div>
         <div class="ab-body" id="abBody" tabindex="0">
           <canvas id="c" role="img" aria-label="Scene preview"></canvas>
           <canvas id="ov" aria-hidden="true"></canvas>
+          <div id="liveLayer"></div>
         </div>
       </div>
       <div class="dropzone" id="drop" tabindex="0" role="button" aria-label="Add screenshots">
@@ -1740,7 +1751,7 @@ function drawScene(c,W,H,K,t){
       c.translate(0,(bh*f)/2+8);c.scale(f,-f);c.globalAlpha=S.bgMedia.reflect/100*.42;
       drawDevice(c,d,sl,f,K,t);c.restore();
     }
-    S.boxes[i]={cx,cy,w:bw*f,h:bh*f,a};
+    S.boxes[i]={cx,cy,w:bw*f,h:bh*f,a,f};
   });
   }
   if(S.bgMedia.reflect>0&&!S.tr){
@@ -1808,6 +1819,7 @@ function render(){
   $('#abTitle').textContent=d.n+'  ·  device '+(S.sel+1);
   $('#abRatio').textContent=RAT[S.ratio][0];
   $('#abRes').textContent=(w*S.k)+' × '+(h*S.k);
+  placeLive();
 }
 function tick(t){requestAnimationFrame(tick);if(!S.liveOn)return;if(t-lastFrame<33)return;lastFrame=t;render()}
 function say(msg){$('#status').textContent=msg;const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2400)}
@@ -1985,7 +1997,7 @@ async function captureUrl(raw){
   try{url=new URL(url).href}catch(e){return say('That doesn’t look like a valid URL')}
   const btn=$('#shotUrlGo');btn.disabled=true;btn.textContent='Capturing…';
   const host=new URL(url).hostname.replace(/^www\./,'');
-  const slots=S.slots.filter(sl=>!sl.hidden);
+  const slots=[S.slots[S.sel]];
   const assign=(sl,idx)=>{sl.img=idx;sl.ix=0;sl.iy=0;sl.iscale=1};
   try{
     /* a direct image link is used as-is on every device */
@@ -1994,7 +2006,7 @@ async function captureUrl(raw){
     if(direct){
       const o=await blobToImage(direct);S.images.push({url:o.url,img:o.img,name:host});
       slots.forEach(sl=>assign(sl,S.images.length-1));
-      renderShots();sync();commit();say('Image placed on '+slots.length+' device'+(slots.length>1?'s':''));return;
+      renderShots();sync();commit();say('Image placed on device '+(S.sel+1));return;
     }
     /* otherwise render the page once per distinct device viewport */
     const views=new Map();
@@ -2007,11 +2019,75 @@ async function captureUrl(raw){
       done++;renderShots();sync();say('Captured '+done+'/'+total+' · '+v.w+'×'+v.h);
     }).catch(()=>{failed++})));
     if(!done)throw new Error('capture failed');
-    commit();say(failed?'Captured '+done+' of '+total+' sizes — some failed, try again':'Fitted '+host+' to '+slots.length+' device'+(slots.length>1?'s':''));
+    commit();say('Captured '+host+' on device '+(S.sel+1));
   }catch(e){
     say('Couldn’t capture that page. Try again, use a direct image link, or drop a screenshot in.');
   }finally{btn.disabled=false;btn.textContent='Capture'}
 }
+/* ---------- preview zoom (scroll wheel) ---------- */
+const VIEW={z:1,x:0,y:0,pan:null};
+function setView(z,x,y){
+  const F=cvFit();z=Math.max(1,Math.min(8,z));
+  VIEW.z=z;VIEW.x=Math.min(0,Math.max(F.w*(1-z),x));VIEW.y=Math.min(0,Math.max(F.h*(1-z),y));
+  if(z===1){VIEW.x=0;VIEW.y=0}
+  const tf='translate('+VIEW.x+'px,'+VIEW.y+'px) scale('+z+')';
+  cv.style.transform=ov.style.transform=$('#liveLayer').style.transform=tf;
+  $('#abZoom').textContent=Math.round(z*100)+'%';
+}
+$('#abBody').addEventListener('wheel',e=>{
+  if(e.target.tagName==='IFRAME')return;
+  e.preventDefault();
+  const r=cv.getBoundingClientRect(),mx=e.clientX-(r.left-VIEW.x),my=e.clientY-(r.top-VIEW.y);
+  const dy=e.deltaMode===1?e.deltaY*16:e.deltaY,nz=Math.max(1,Math.min(8,VIEW.z*Math.exp(-dy*.0016)));
+  const u=(mx-VIEW.x)/VIEW.z,v=(my-VIEW.y)/VIEW.z;
+  setView(nz,mx-u*nz,my-v*nz);
+},{passive:false});
+$('#abZoom').onclick=()=>setView(1,0,0);
+addEventListener('resize',()=>setView(VIEW.z,VIEW.x,VIEW.y));
+
+/* ---------- live website inside the selected device (2D view) ---------- */
+const LIVESITE={on:false,slot:0,url:'',dev:'',el:null};
+function startLive(raw){
+  let url=(raw||'').trim();if(!url)return say('Paste a website or localhost URL first');
+  if(!/^[a-z]+:\/\//i.test(url))url=(/^(localhost|127\.|0\.0\.0\.0|\[::1\])/i.test(url)?'http://':'https://')+url;
+  try{url=new URL(url).href}catch(e){return say('That doesn’t look like a valid URL')}
+  if(S.d3.on){S.d3.on=0;sync()}
+  LIVESITE.on=true;LIVESITE.slot=S.sel;LIVESITE.url=url;LIVESITE.dev='';
+  $('#abLive').hidden=false;placeLive();
+  say('Live: '+new URL(url).host+' on device '+(S.sel+1)+' — drag the bezel to move, Esc to exit');
+}
+function stopLive(){LIVESITE.on=false;$('#liveLayer').innerHTML='';LIVESITE.el=null;$('#abLive').hidden=true;say('Live site closed')}
+function placeLive(){
+  const layer=$('#liveLayer');
+  if(!LIVESITE.on)return;
+  const sl=S.slots[LIVESITE.slot],b=S.boxes&&S.boxes[LIVESITE.slot];
+  const show=!!(sl&&b&&b.f&&!S.d3.on&&!sl.hidden&&!S.vid.active);
+  layer.style.display=show?'':'none';if(!show)return;
+  const F=cvFit();
+  layer.style.left=(cv.offsetLeft+F.ox)+'px';layer.style.top=(cv.offsetTop+F.oy)+'px';
+  layer.style.width=cv.width*F.s+'px';layer.style.height=cv.height*F.s+'px';
+  layer.style.transformOrigin=(-F.ox)+'px '+(-F.oy)+'px';
+  const d=devOf(sl),g=geo(d),key=d.id+'|'+LIVESITE.url;
+  if(LIVESITE.dev!==key){
+    LIVESITE.dev=key;layer.innerHTML='';
+    const wrap=document.createElement('div');wrap.className='lv-dev';
+    const sx=-g.W/2+d.b,sy=-g.H/2+g.pt+d.b+g.top;
+    const fr=document.createElement('iframe');
+    fr.src=LIVESITE.url;fr.title='Live website';fr.setAttribute('allow','clipboard-read; clipboard-write; fullscreen');
+    fr.setAttribute('referrerpolicy','no-referrer');
+    Object.assign(fr.style,{left:sx+'px',top:sy+'px',width:g.sw+'px',height:g.sh+'px',borderRadius:d.round?'50%':(d.k==='browser'?'0 0 '+d.rs+'px '+d.rs+'px':d.rs+'px')});
+    wrap.append(fr);
+    const hw=(x,y,w,h,r)=>{const e=document.createElement('div');e.className='lv-hw';Object.assign(e.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:r});wrap.append(e)};
+    if(d.cam==='island')hw(-g.sw*.15,sy+11,g.sw*.3,g.sw*.085,g.sw*.045+'px');
+    else if(d.cam==='punch')hw(-9,sy+9,18,18,'50%');
+    else if(d.cam==='notch')hw(-g.sw*.13,sy,g.sw*.26,Math.max(8,g.sh*.026),'0 0 10px 10px');
+    layer.append(wrap);LIVESITE.el=wrap;
+  }
+  /* same transform the canvas uses for this device: translate → rotate → scale (canvas px → CSS px) */
+  LIVESITE.el.style.transform='scale('+F.s+') translate('+b.cx+'px,'+b.cy+'px) rotate('+b.a+'rad) scale('+b.f+')';
+}
+$('#abLive').onclick=stopLive;
+$('#shotUrlLive').onclick=()=>startLive($('#shotUrl').value);
 $('#urlForm').onsubmit=e=>{e.preventDefault();captureUrl($('#shotUrl').value)};
 $('#shotClear').onclick=()=>{S.images=[];S.slots.forEach(s=>s.img=null);S.armed=null;renderShots();sync();commit();say('All screenshots cleared')};
 
@@ -2035,7 +2111,8 @@ addEventListener('paste',async e=>{
 });
 
 /* ---- direct canvas interaction ---- */
-function pt(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*(cv.width/r.width),y:(e.clientY-r.top)*(cv.height/r.height)}}
+function cvFit(){const w=cv.clientWidth,h=cv.clientHeight,s=Math.min(w/cv.width,h/cv.height);return{w,h,s,ox:(w-cv.width*s)/2,oy:(h-cv.height*s)/2}}
+function pt(e){const r=cv.getBoundingClientRect(),F=cvFit(),z=VIEW.z;return{x:((e.clientX-r.left)/z-F.ox)/F.s,y:((e.clientY-r.top)/z-F.oy)/F.s}}
 function hit(p){for(let i=S.slots.length-1;i>=0;i--){const b=S.boxes[i];if(!b)continue;const dx=p.x-b.cx,dy=p.y-b.cy,c=Math.cos(-b.a),s=Math.sin(-b.a);const lx=dx*c-dy*s,ly=dx*s+dy*c;if(Math.abs(lx)<=b.w/2&&Math.abs(ly)<=b.h/2)return i}return -1}
 const pointers=new Map();let drag=null,pinch=null,rotDrag=null;
 function placeNote(p){
@@ -2050,6 +2127,8 @@ function placeNote(p){
   S.noteSel=S.notes.length-1;sync();commit();say('Annotation added');
 }
 $('#abBody').addEventListener('pointerdown',e=>{
+  if(e.target.tagName==='IFRAME')return;
+  if(e.button===1||(VIEW.z>1&&!S.imgTool&&hit(pt(e))<0)){e.preventDefault();VIEW.pan={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y,id:e.pointerId};$('#abBody').classList.add('panning');try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}return}
   const p=pt(e);pointers.set(e.pointerId,p);try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}
   if(S.imgTool){placeNote(p);return}
   if(S.d3.on&&!e.altKey){
@@ -2070,6 +2149,7 @@ $('#abBody').addEventListener('pointerdown',e=>{
   }
 });
 $('#abBody').addEventListener('pointermove',e=>{
+  if(VIEW.pan&&VIEW.pan.id===e.pointerId){setView(VIEW.z,VIEW.pan.vx+e.clientX-VIEW.pan.x,VIEW.pan.vy+e.clientY-VIEW.pan.y);return}
   const p=pt(e);if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,p);
   if(rotDrag){
     const sl=S.slots[rotDrag.i],dx=(p.x-rotDrag.x)/cv.width*360,dy=(p.y-rotDrag.y)/cv.height*180;
@@ -2099,10 +2179,10 @@ $('#abBody').addEventListener('pointermove',e=>{
     render();
   }
 });
-function endPointer(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
+function endPointer(e){if(VIEW.pan&&VIEW.pan.id===e.pointerId){VIEW.pan=null;$('#abBody').classList.remove('panning');return}pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
 $('#abBody').addEventListener('pointerup',endPointer);
 $('#abBody').addEventListener('pointercancel',endPointer);
-$('#abBody').addEventListener('dblclick',e=>{const i=hit(pt(e));if(i>=0){Object.assign(S.slots[i],{x:0,y:0,s:1,r:0});S.sel=i;sync();commit();say('Device '+ (i+1)+' reset')}});
+$('#abBody').addEventListener('dblclick',e=>{const i=hit(pt(e));if(i<0&&VIEW.z!==1){setView(1,0,0);return}if(i>=0){Object.assign(S.slots[i],{x:0,y:0,s:1,r:0});S.sel=i;sync();commit();say('Device '+ (i+1)+' reset')}});
 
 function syncSliders(){
   const sl=S.slots[S.sel];$('#sc').value=Math.round(sl.s*100);$('#ro').value=Math.round(sl.r);
@@ -2813,6 +2893,8 @@ addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
   if(typing)return;
   const k=e.key.toLowerCase();
+  if(k==='0'){setView(1,0,0);return}
+  if(k==='escape'&&LIVESITE.on){stopLive();return}
   if(k==='d'){S.dark=S.dark?0:1;sync();commit()}
   else if(k==='l'){S.land=S.land?0:1;sync();commit();say(S.land?'All devices flipped to landscape':'All devices back to portrait')}
   else if(k==='f'){$('#focusBtn').click()}
