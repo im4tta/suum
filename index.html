@@ -139,6 +139,8 @@ section[data-group]{scroll-margin-top:10px}
 .addshot{width:100%;min-height:46px;border:1.5px dashed var(--line2);border-radius:11px;background:var(--panel2);color:var(--muted);display:flex;align-items:center;justify-content:center;gap:9px;font-size:12px;font-weight:600;transition:.16s}
 .addshot:hover{border-color:var(--accent);color:var(--txt);background:var(--accent-soft)}
 .addshot svg{width:17px;height:17px;color:var(--accent)}
+.urlrow{display:flex;gap:6px;margin-top:8px}.urlrow .vinput{margin:0;flex:1;min-width:0}.urlrow .tiny-btn{flex:none;padding:0 12px}
+.urlrow .tiny-btn:disabled{opacity:.5;cursor:progress}
 .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
 .shot{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:var(--bg2);padding:0;transition:.15s}
 .shot:hover{transform:translateY(-2px);border-color:var(--line2)}
@@ -458,6 +460,8 @@ body.focus .stage-hint{opacity:.6}
       <section data-group="screens">
         <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Screenshots</div><span class="s-count" id="shotCount">0</span></div>
         <button class="addshot" id="addShot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Add screenshots (multiple)</button>
+        <form class="urlrow" id="urlForm"><input class="vinput" id="shotUrl" type="text" inputmode="url" autocomplete="url" placeholder="Website or image URL" aria-label="Website or image URL"><button class="tiny-btn" id="shotUrlGo" type="submit">Capture</button></form>
+        <p class="inline" style="margin-top:6px">Captures the page at each device’s real screen size and fits it to every device. Pages are rendered by the public microlink.io screenshot service.</p>
         <button class="btn-ghost" id="pasteBtn" style="width:100%;margin-top:7px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 13h6m-6 4h4"/></svg>Paste image from clipboard</button>
         <div class="shots" id="shots"></div>
         <div class="empty-hint" id="shotHint">Add images, then tap one to place it on the selected device. Or drag it onto a device in the scene.</div>
@@ -824,6 +828,62 @@ const FINISH=[
  ['Product Red','#B92A2E'],['Sandy Gray','#A9A297']
 ];
 
+/* real colourways per model (manufacturer names; hex sampled from product photography) */
+const FINS={
+ ip16pro:[['Black Titanium','#3C3C3D'],['White Titanium','#F2F1ED'],['Natural Titanium','#C2BCB2'],['Desert Titanium','#BFA48F']],
+ ip15:[['Black','#35393B'],['Blue','#CED5D9'],['Green','#CAD4C5'],['Yellow','#E6E0C1'],['Pink','#E3C8CA']],
+ ipse:[['Midnight','#232A31'],['Starlight','#F0EADE'],['(PRODUCT)RED','#BF0013']],
+ ip18pro:[['Silver','#E3E4E5'],['Glacier Blue','#B8CCDA'],['Burgundy','#5E1F2A'],['Deep Black','#2B2C2E']],
+ iair:[['Space Black','#2E2E30'],['Cloud White','#F2F2EE'],['Light Gold','#E9DCC4'],['Sky Blue','#D6E3EE']],
+ duo:[['Star White','#EEECE6'],['Night Sky','#24262B']],
+ s24u:[['Titanium Black','#3B3B3D'],['Titanium Gray','#8D8A85'],['Titanium Violet','#4F4757'],['Titanium Yellow','#E8DDB8']],
+ s24:[['Onyx Black','#2C2D30'],['Marble Gray','#C8C7C3'],['Cobalt Violet','#6E6A92'],['Amber Yellow','#E9DFA9']],
+ s26:[['Black','#2A2B2E'],['White','#F0F0EE'],['Sky Blue','#BBD0E3'],['Cobalt Violet','#5B4F7A'],['Pink Gold','#E6CCC0'],['Silver Shadow','#B9BBBE']],
+ p9p:[['Obsidian','#2E2F31'],['Porcelain','#EEE7DA'],['Hazel','#8E9182'],['Rose Quartz','#EBC9C3']],
+ p11:[['Obsidian','#2E2F31'],['Frost','#DCE3EA'],['Pistachio','#C7D3A6'],['Hibiscus','#D9536F']],
+ p11p:[['Obsidian','#2B2C2E'],['Fog','#CBCFD0'],['Canyon','#B07A5A'],['Olive','#6F7457']],
+ p11f:[['Obsidian','#2B2C2E'],['Olive','#6F7457']],
+ op12:[['Silky Black','#1E1F21'],['Flowy Emerald','#2F5A4C'],['Glacial White','#ECEDEE']],
+ op15:[['Infinite Black','#1C1D1F'],['Sand Storm','#CFC2A6'],['Ultra Violet','#6B5B8E']],
+ xu:[['Black','#232325'],['White','#EEEDEA'],['Titanium','#9E9C98']],
+ honor:[['Black','#202123'],['Snow White','#F1F0EC'],['Sunrise Gold','#D9C3A0'],['Sky Cyan','#A5C9C8']],
+ zf6:[['Silver Shadow','#B9BBBE'],['Pink','#E8C9CC'],['Navy','#26304A']],
+ zfl6:[['Silver Shadow','#B9BBBE'],['Blue','#A9C3DD'],['Yellow','#F0E2A2'],['Mint','#C9E2D3']],
+ zf8:[['Graphite','#3A3B3E'],['Cream','#E9E1D2'],['Lavender','#C7BEDC'],['Pistachio','#C6D3A9']],
+ zflip8:[['Graphite','#3A3B3E'],['Cream','#E9E1D2'],['Pink','#EBC6CC'],['Mint','#C5E3D4']],
+ ipadpro:[['Space Black','#2E2F31'],['Silver','#E2E3E4']],
+ ipad:[['Space Gray','#6C6E70'],['Starlight','#E9E2D3'],['Blue','#A9B8C8'],['Purple','#C9C0D6']],
+ tab9:[['Graphite','#4A4B4D'],['Beige','#E3DACB']],
+ tab12:[['Gray','#6E6F72'],['Silver','#D3D4D6']],
+ mbp:[['Space Black','#2E2E30'],['Silver','#E3E4E5']],
+ mba:[['Midnight','#2E3641'],['Starlight','#F0E6D6'],['Silver','#E3E4E5'],['Sky Blue','#C6D7E2']],
+ imac:[['Blue','#3B6BA3'],['Green','#3D7A55'],['Pink','#D7666F'],['Yellow','#E9B84A'],['Orange','#E36E3C'],['Purple','#6E5BA6'],['Silver','#D4D5D7']],
+ sd:[['Silver','#D5D6D8']],
+ dell:[['Black','#2A2B2E']],
+ wultra:[['Natural Titanium','#BDB8AE'],['Black Titanium','#2D2D2F']],
+ ws10:[['Jet Black','#1C1C1E'],['Silver','#DADBDD'],['Rose Gold','#E7C9BC'],['Slate Titanium','#5A5B5E'],['Natural Titanium','#BDB8AE'],['Gold Titanium','#D6BE96']],
+ w12:[['Space Gray','#5E6064'],['Black','#1E1F21'],['Light Gold','#E7D8BE'],['Dark Bronze','#6B5340'],['Natural Titanium','#BDB8AE'],['Radiant Gold','#D8B784'],['Pearl White','#F2EFE8'],['Night Blue','#22304A']],
+ wse:[['Midnight','#232A31'],['Starlight','#EDE6D7']],
+ gw:[['Graphite','#3A3B3E'],['Silver','#D3D4D6'],['Green','#4C5A4B'],['Cream','#E9E2D2']],
+ pw:[['Obsidian','#2B2C2E'],['Fog','#CBCFD0'],['Canyon','#B07A5A'],['Olive','#6F7457']],
+ web:[['Graphite','#3A3B3E'],['Silver','#D5D6D8']]
+};
+const DEVFIN={i16p:'ip16pro',i16pm:'ip16pro',i15:'ip15',se:'ipse',s24u:'s24u',s24:'s24',p9p:'p9p',op12:'op12',x14u:'xu',
+ zf6o:'zf6',zf6c:'zf6',zfl6:'zfl6',ip13:'ipadpro',ip11:'ipad',tab9:'tab9',mbp14:'mbp',mbp16:'mbp',mba13:'mba',imac:'imac',sd:'sd',uw:'dell',
+ wu2:'wultra',ws10:'ws10',gw7:'gw',br:'web',brw:'web',i18p:'ip18pro',i18pm:'ip18pro',iair2:'iair',s26u:'s26',s26:'s26',p11:'p11',p11p:'p11p',
+ op15:'op15',x16u:'xu',m8p:'honor',iduo_o:'duo',iduo_c:'duo',zf8o:'zf8',zf8c:'zf8',p11f:'p11f',zflip8:'zflip8',ipm5:'ipadpro',ipmini:'ipad',
+ tabs12:'tab12',mbp14m6:'mbp',mbp16m6:'mbp',mbaM5:'mba',imacM6:'imac',w12:'w12',wu4:'wultra',wse3:'wse',gw9:'gw',pw5:'pw'};
+const devOf=sl=>DEV.find(z=>z.id===sl.dev)||DEV[0];
+const finList=d=>FINS[DEVFIN[d.id]]||FINS.web;
+const finOf=sl=>{const L=finList(devOf(sl));return L[((sl.finish||0)%L.length+L.length)%L.length]};
+function nearestIn(L,hex){
+  const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;let best=0,bd=1e9;
+  L.forEach((f,i)=>{const v=parseInt(f[1].slice(1),16),dr=(v>>16)-r,dg=((v>>8)&255)-g,db=(v&255)-b,d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=i}});
+  return best;
+}
+/* keep the nearest real colour when a slot switches model */
+function setDev(sl,id){const hex=finOf(sl)[1];sl.dev=id;sl.finish=nearestIn(finList(devOf(sl)),hex)}
+
 const BGS=[
  ['#EDE4D9','#C9BBA9'],['#1B1D22','#3A3F4A'],['#FFB49A','#FF5C35'],
  ['#0E2E2A','#1F665A'],['#F6F3EC','#DCD5C7'],['#12203A','#2B4870'],
@@ -969,7 +1029,7 @@ function liveContent(c,x,y,w,h,mode,t,dk){
 }
 
 function drawDevice(c,d,sl,f,K,t){
-  const g=geo(d), x=-g.W/2, y=-g.H/2+g.pt, col=FINISH[sl.finish][1], dk=S.dark, sh=S.noShadow?0:S.shadow;
+  const g=geo(d), x=-g.W/2, y=-g.H/2+g.pt, col=finOf(sl)[1], dk=S.dark, sh=S.noShadow?0:S.shadow;
   const screenX=x+d.b, screenY=y+d.b+g.top, sw=g.sw, shh=g.sh;
   c.save();
 
@@ -1387,7 +1447,7 @@ function keyboardTex(col,w,h,q){
 
 /* ---------- full device mesh (local units = 2D drawing units, origin at device centre) ---------- */
 function buildDeviceMesh(d,sl,g,frontTex,q){
-  const M=Mesh(),sp=SPEC[d.id]||{mm:[g.bw/5,g.bh/5,6],back:'plain'},col=FINISH[sl.finish][1];
+  const M=Mesh(),sp=SPEC[d.id]||{mm:[g.bw/5,g.bh/5,6],back:'plain'},col=finOf(sl)[1];
   const bw=g.bw,bh=g.bh,yTop=-g.H/2+g.pt,yc=yTop+bh/2,u=bw/sp.mm[0];
   const isLap=d.k==='laptop',T=Math.max(2,(isLap?sp.lid:sp.mm[2])*u);
   const ow=frontTex.width/q,oh=frontTex.height/q;
@@ -1786,7 +1846,7 @@ function glyph(d){const k=d.id==='zf6o'?'foldOpen':d.id==='zfl6'?'foldOpen':d.fo
     items.forEach(({d,i})=>{
       const b=document.createElement('button');b.className='dcard';b.dataset.i=i;b.title=d.n;b.dataset.name=(d.n+' '+g).toLowerCase();
       b.innerHTML='<span class="dg">'+glyph(d)+'</span><span class="dn">'+d.n+'</span>';
-      b.onclick=()=>{S.slots[S.sel].dev=d.id;say(d.n+' → device '+(S.sel+1));sync();commit()};
+      b.onclick=()=>{setDev(S.slots[S.sel],d.id);say(d.n+' → device '+(S.sel+1));sync();commit()};
       grid.append(b);
     });
     sec.append(lab,grid);wrap.append(sec);
@@ -1800,10 +1860,11 @@ function glyph(d){const k=d.id==='zf6o'?'foldOpen':d.id==='zfl6'?'foldOpen':d.fo
   };
 })();
 
-FINISH.forEach((p,i)=>{const b=document.createElement('button');b.className='finish';b.style.setProperty('--c',p[1]);b.title=p[0];b.setAttribute('aria-label',p[0]);b.onclick=()=>{S.slots[S.sel].finish=i;sync();commit()};$('#finishes').append(b)});
+function buildFinishes(){const el=$('#finishes'),d=devOf(S.slots[S.sel]);if(el.dataset.dev===d.id)return;el.dataset.dev=d.id;el.innerHTML='';
+  finList(d).forEach((p,i)=>{const b=document.createElement('button');b.className='finish';b.style.setProperty('--c',p[1]);b.title=p[0];b.setAttribute('aria-label',p[0]);b.onclick=()=>{S.slots[S.sel].finish=i;sync();commit()};el.append(b)})}
 BGS.forEach((p,i)=>{const b=document.createElement('button');b.className='bgsw';b.style.background='linear-gradient(135deg,'+p[0]+','+p[1]+')';b.title='Backdrop '+(i+1);b.onclick=()=>{S.bg=i;S.a=p[0];S.b=p[1];S.tr=0;sync();commit()};$('#bgs').append(b)});
 LOOKS.forEach((lk,i)=>{const b=document.createElement('button');b.className='look';b.dataset.i=i;b.innerHTML='<div class="chip" style="background:linear-gradient(135deg,'+lk.bg[0]+','+lk.bg[1]+')"></div><span>'+lk.n+'</span>';b.onclick=()=>{
-  S.a=lk.bg[0];S.b=lk.bg[1];S.bg=-1;S.tr=0;S.shadow=lk.shadow;S.dark=lk.dark;S.slots.forEach(s=>{s.finish=lk.finish;s.live=lk.live});sync();commit();say('Look: '+lk.n);
+  S.a=lk.bg[0];S.b=lk.bg[1];S.bg=-1;S.tr=0;S.shadow=lk.shadow;S.dark=lk.dark;S.slots.forEach(s=>{s.finish=nearestIn(finList(devOf(s)),FINISH[lk.finish][1]);s.live=lk.live});sync();commit();say('Look: '+lk.n);
 };$('#looks').append(b)});
 LIVE.forEach(([id,n,ico])=>{const b=document.createElement('button');b.className='live-btn';b.dataset.m=id;b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ico+'</svg><span>'+n+'</span>';b.onclick=()=>{S.slots[S.sel].live=id;sync();commit();say(n+' screen on device '+(S.sel+1))};$('#liveModes').append(b)});
 
@@ -1859,8 +1920,8 @@ $('#c1').onchange=$('#c2').onchange=commit;
 $('#tr').onclick=()=>{S.tr=S.tr?0:1;sync();commit()};
 $('#liveToggle').onclick=()=>{S.liveOn=!S.liveOn;$('#liveToggle').textContent=S.liveOn?'Pause motion':'Resume motion';say(S.liveOn?'Live screens running':'Live screens paused')};
 
-$('#devAll').onclick=()=>{const id=S.slots[S.sel].dev;S.slots.forEach(s=>s.dev=id);sync();commit();say('Device applied to all '+S.n+' slots')};
-$('#finishAll').onclick=()=>{const f=S.slots[S.sel].finish;S.slots.forEach(s=>s.finish=f);sync();commit();say('Finish applied to all devices')};
+$('#devAll').onclick=()=>{const id=S.slots[S.sel].dev;S.slots.forEach(s=>setDev(s,id));sync();commit();say('Device applied to all '+S.n+' slots')};
+$('#finishAll').onclick=()=>{const hex=finOf(S.slots[S.sel])[1];S.slots.forEach(s=>s.finish=nearestIn(finList(devOf(s)),hex));sync();commit();say('Finish applied to all devices')};
 
 /* ---- screenshots ---- */
 function renderShots(){
@@ -1895,6 +1956,63 @@ function removeShot(i){
 $('#addShot').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{addImages(e.target.files);e.target.value=''};
 $('#shotAll').onclick=()=>{if(!S.images.length)return say('Add screenshots first');S.slots.forEach((s,i)=>s.img=i%S.images.length);sync();commit();say('Screenshots applied to all devices')};
+/* ---------- capture a website (or load an image link) and fit it to every device ---------- */
+function viewportOf(d){
+  const g=geo(d);let w=g.sw,h=g.sh;
+  if(d.k==='watch')h=Math.round(h*390/w),w=390; /* watches browse with a phone-width viewport */
+  if(w>1920){h=Math.round(h*1920/w);w=1920}
+  return{w:Math.round(w),h:Math.round(h)};
+}
+function fetchImageBlob(u){
+  return fetch(u,{mode:'cors',credentials:'omit'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.blob()})
+    .then(b=>{if(!/^image\//.test(b.type))throw new Error('not an image');return b});
+}
+const SHOT_SERVICES=[
+  (url,w,h)=>fetch('https://api.microlink.io/?'+new URLSearchParams({url,screenshot:'true',meta:'false',
+      'viewport.width':w,'viewport.height':h,'viewport.deviceScaleFactor':'2','viewport.isMobile':String(w<700),'viewport.hasTouch':String(w<1100),waitForTimeout:'1200'}))
+    .then(r=>r.json()).then(j=>{const u=j&&j.data&&j.data.screenshot&&j.data.screenshot.url;if(!u)throw new Error((j&&j.message)||'no screenshot');return fetchImageBlob(u)}),
+  (url,w,h)=>fetchImageBlob('https://image.thum.io/get/noanimate/viewportWidth/'+w+'/width/'+(w*2)+'/crop/'+(h*2)+'/'+url)
+];
+function captureAt(url,w,h){
+  let p=Promise.reject();
+  SHOT_SERVICES.forEach(fn=>{p=p.catch(()=>fn(url,w,h))});
+  return p;
+}
+function blobToImage(b){return new Promise((res,rej)=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>res({url:u,img:im});im.onerror=()=>rej(new Error('decode'));im.src=u})}
+async function captureUrl(raw){
+  let url=(raw||'').trim();if(!url)return say('Paste a website or image URL first');
+  if(!/^https?:\/\//i.test(url))url='https://'+url;
+  try{url=new URL(url).href}catch(e){return say('That doesn’t look like a valid URL')}
+  const btn=$('#shotUrlGo');btn.disabled=true;btn.textContent='Capturing…';
+  const host=new URL(url).hostname.replace(/^www\./,'');
+  const slots=S.slots.filter(sl=>!sl.hidden);
+  const assign=(sl,idx)=>{sl.img=idx;sl.ix=0;sl.iy=0;sl.iscale=1};
+  try{
+    /* a direct image link is used as-is on every device */
+    let direct=null;
+    if(/\.(png|jpe?g|webp|gif|avif|bmp|svg)(\?|#|$)/i.test(url))direct=await fetchImageBlob(url).catch(()=>null);
+    if(direct){
+      const o=await blobToImage(direct);S.images.push({url:o.url,img:o.img,name:host});
+      slots.forEach(sl=>assign(sl,S.images.length-1));
+      renderShots();sync();commit();say('Image placed on '+slots.length+' device'+(slots.length>1?'s':''));return;
+    }
+    /* otherwise render the page once per distinct device viewport */
+    const views=new Map();
+    slots.forEach(sl=>{const v=viewportOf(devOf(sl)),k=v.w+'x'+v.h;if(!views.has(k))views.set(k,{...v,slots:[]});views.get(k).slots.push(sl)});
+    let done=0,failed=0;const total=views.size;
+    say('Capturing '+host+' at '+total+' screen size'+(total>1?'s':'')+'…');
+    await Promise.all([...views.values()].map(v=>captureAt(url,v.w,v.h).then(blobToImage).then(o=>{
+      S.images.push({url:o.url,img:o.img,name:host+' · '+v.w+'×'+v.h});
+      v.slots.forEach(sl=>assign(sl,S.images.length-1));
+      done++;renderShots();sync();say('Captured '+done+'/'+total+' · '+v.w+'×'+v.h);
+    }).catch(()=>{failed++})));
+    if(!done)throw new Error('capture failed');
+    commit();say(failed?'Captured '+done+' of '+total+' sizes — some failed, try again':'Fitted '+host+' to '+slots.length+' device'+(slots.length>1?'s':''));
+  }catch(e){
+    say('Couldn’t capture that page. Try again, use a direct image link, or drop a screenshot in.');
+  }finally{btn.disabled=false;btn.textContent='Capture'}
+}
+$('#urlForm').onsubmit=e=>{e.preventDefault();captureUrl($('#shotUrl').value)};
 $('#shotClear').onclick=()=>{S.images=[];S.slots.forEach(s=>s.img=null);S.armed=null;renderShots();sync();commit();say('All screenshots cleared')};
 
 const drop=$('#drop');
@@ -2109,22 +2227,17 @@ function sampleImage(img){
   const a=[r/n,g/n,b/n];
   return{avg:hx(...a),light:hx(a[0]*.45+140,a[1]*.45+140,a[2]*.45+140),dark:hx(a[0]*.35,a[1]*.35,a[2]*.35),accent:best?hx(...best):hx(...a),lo,hi};
 }
-function nearestFinish(hex){
-  const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;let best=0,bd=1e9;
-  FINISH.forEach((f,i)=>{const v=parseInt(f[1].slice(1),16),dr=(v>>16)-r,dg=((v>>8)&255)-g,db=(v&255)-b,d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=i}});
-  return best;
-}
 function curImg(){const sl=S.slots[S.sel];return sl&&sl.img!=null?S.images[sl.img]:null}
 function autoStyle(){
   const im=curImg();if(!im)return say('Add a screenshot to the selected device first');
   const s=sampleImage(im.img);S.a=s.dark;S.b=s.light;S.bg=-1;S.tr=0;
-  S.slots[S.sel].finish=nearestFinish(s.accent);sync();commit();say('Auto-styled from screenshot colours');
+  S.slots[S.sel].finish=nearestIn(finList(devOf(S.slots[S.sel])),s.accent);sync();commit();say('Auto-styled from screenshot colours');
 }
 function autoCompose(){
   const im=curImg();if(!im)return say('Add a screenshot first');
   const ar=im.img.naturalWidth/im.img.naturalHeight;
   const dev=ar>1.55?'mbp14':ar<.85?'ip13':'i18p';
-  S.slots[S.sel].dev=dev;S.slots[S.sel].img=S.sel;S.n=1;S.slots=[S.slots[S.sel]];S.sel=0;
+  setDev(S.slots[S.sel],dev);S.slots[S.sel].img=S.sel;S.n=1;S.slots=[S.slots[S.sel]];S.sel=0;
   let bi=0,bd=1e9;RAT.forEach((r,i)=>{const d=Math.abs(r[1]/r[2]-ar);if(d<bd){bd=d;bi=i}});S.ratio=bi;
   S.slots[0].iscale=1;S.slots[0].ix=0;S.slots[0].iy=0;sync();commit();say('Composed for a '+ar.toFixed(2)+' screenshot');
 }
@@ -2288,8 +2401,9 @@ $('#delLayer').onclick=()=>{if(S.slots.length<=1)return say('Keep at least one d
 function sync(){
   const P=(el,on)=>el.setAttribute('aria-pressed',on?'true':'false');
   $$('#devs .dcard').forEach(b=>P(b,DEV[+b.dataset.i].id===S.slots[S.sel].dev));
-  $$('#finishes .finish').forEach((b,i)=>P(b,i===S.slots[S.sel].finish));
-  $('#finishName').textContent=FINISH[S.slots[S.sel].finish][0];
+  buildFinishes();const fl=finList(devOf(S.slots[S.sel])),fi=((S.slots[S.sel].finish||0)%fl.length+fl.length)%fl.length;
+  $$('#finishes .finish').forEach((b,i)=>P(b,i===fi));
+  $('#finishName').textContent=fl[fi][0];
   $$('#bgs .bgsw').forEach((b,i)=>P(b,i===S.bg&&!S.tr));
   $$('#looks .look').forEach(b=>P(b,+b.dataset.i===S.bg));
   $$('#lay button').forEach((b,i)=>P(b,i+1===S.n));
