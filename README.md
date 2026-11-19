@@ -38,7 +38,7 @@ Drop a screenshot onto the stage (or paste with `Ctrl/⌘ + V`), pick a device, 
 ### Scenes
 - **54 real devices** — iPhone 18 Pro / iPhone Duo, Galaxy S26 Ultra / Z Fold8, Pixel 11 series, OnePlus 15, Xiaomi 16 Ultra, iPad Pro M5, MacBook Pro M6, iMac M6, Apple Watch Series 12 / Ultra 4, Galaxy Watch9, Pixel Watch 5, and more — each drawn with real proportions and hardware details (Dynamic Island, punch holes, notches, fold hinges, watch crowns).
 - **Universal flipping** — every device rotates to landscape with the `L` key. Cameras, notches and crowns stay in the correct relative place.
-- **3D View** — every device is a real perspective plane. Rotate any frame to any yaw, pitch and roll with sliders, presets or direct drag (Shift to roll, Alt to move). Perspective is adjustable, depth-sorted, and baked into both image and video exports.
+- **3D View** — every device is a real extruded solid with proper thickness, side rails and a spec-based back (camera modules, lens arrays, flash and logos per device family). Rotate any frame to any yaw, pitch and roll with sliders, presets or direct drag (Shift to roll, Alt to move). Perspective is adjustable, depth-sorted, and baked into both image and video exports.
 - **1–4 device compositions** with direct manipulation: tap to select, drag to move, pinch to scale, twist to rotate.
 - **Layers panel** — visibility, reorder, and bring forward / backward / to front / to back, plus duplicate and delete.
 - **Direct screenshots** — add many at once, assign one per device, or place them by tapping a thumbnail then a device.
@@ -72,7 +72,8 @@ Drop a screenshot onto the stage (or paste with `Ctrl/⌘ + V`), pick a device, 
 - PNG / JPG / WebP at 1×, 2× or 3×.
 - Copy image to clipboard, with robust fallbacks.
 - Themed slim scrollbars, light/dark/system themes, focus mode, and a mobile bottom-tab layout.
-- The right inspector is organised into clean tabs — **Style, Smart, Canvas, 3D, Export, Video** — so each group's controls stay uncluttered.
+- Both side panels use clean tabs — left: **Devices, Layers, Screens**; right: **Style, Smart, Canvas, 3D, Export, Video** — so each group's controls stay uncluttered. Overflowing tabs show a subtle arrow instead of a scrollbar.
+- Multi-device compositions are auto-spaced so devices don't overlap.
 
 ## Keyboard shortcuts
 
