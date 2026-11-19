@@ -8,8 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FF5C35'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-weight='700' font-size='40' fill='%23fff' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FF5C35'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link id="manifestLink" rel="manifest">
 <style>
 /* ============================================================
@@ -55,7 +56,7 @@ button{cursor:pointer}
 .mark{width:36px;height:36px;display:grid;place-items:center;flex:none;border-radius:11px;color:#fff;
   background:linear-gradient(145deg,var(--accent),var(--accent2));
   box-shadow:0 8px 22px -10px var(--accent),inset 0 1px 0 rgba(255,255,255,.4)}
-.mark svg{width:21px;height:21px}
+.mark svg{width:27px;height:27px}
 .brand h1{font-size:18px;font-weight:700;letter-spacing:-.035em;line-height:1}
 .brand .tag{font:700 9px/1 "Inter";letter-spacing:.14em;color:var(--accent);border:1px solid var(--line2);padding:4px 6px;border-radius:5px}
 .proj{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg2)}
@@ -437,7 +438,7 @@ body.focus .stage-hint{opacity:.6}
   <!-- ===== TOPBAR ===== -->
   <header class="topbar">
     <div class="brand">
-      <div class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><rect x="6" y="6" width="15" height="19" rx="3" stroke="currentColor" stroke-width="2" opacity=".55"/><rect x="12" y="8" width="15" height="19" rx="3" fill="rgba(10,10,15,.35)" stroke="currentColor" stroke-width="2"/></svg></div>
+      <div class="mark" aria-hidden="true"><svg viewBox="4 3 56 58" fill="none"><rect x="28" y="7" width="27" height="48" rx="8" transform="rotate(13 41.5 31)" fill="#fff" fill-opacity=".3"/><g transform="rotate(-9 28 32)"><rect x="12" y="6" width="31" height="53" rx="9" fill="#fff"/><rect x="16.2" y="10.2" width="22.6" height="44.6" rx="5.5" fill="#1d1622"/><rect x="22.8" y="13.2" width="9.4" height="3.2" rx="1.6" fill="#fff" fill-opacity=".92"/><rect x="20" y="38.5" width="15" height="3.6" rx="1.8" fill="#FF7A45"/><rect x="20" y="45" width="10" height="2.8" rx="1.4" fill="#fff" fill-opacity=".35"/></g></svg></div>
       <h1>FrameKit</h1><span class="tag">STUDIO</span>
     </div>
     <div class="proj"><span class="dot"></span><span id="projName">Untitled scene</span></div>
@@ -2938,13 +2939,9 @@ addEventListener('keydown',e=>{
 /* PWA manifest / install / share target */
 (function(){
   try{
-    const c=document.createElement('canvas');c.width=c.height=192;const x=c.getContext('2d');
-    x.fillStyle='#FF5C35';x.beginPath();x.roundRect(0,0,192,192,42);x.fill();
-    x.fillStyle='#fff';x.font='700 120px "Space Grotesk",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('F',96,102);
-    const icon=c.toDataURL('image/png');
     const manifest={name:'FrameKit Studio',short_name:'FrameKit',description:'Device mockups and video scenes',
       start_url:location.href.split('#')[0],display:'standalone',background_color:'#0B0B0D',theme_color:'#FF5C35',
-      icons:[{src:icon,sizes:'192x192',type:'image/png'},[{src:icon,sizes:'512x512',type:'image/png'}][0]],
+      icons:[{src:new URL('icon-192.png',location.href).href,sizes:'192x192',type:'image/png'},{src:new URL('icon-512.png',location.href).href,sizes:'512x512',type:'image/png',purpose:'any'},{src:new URL('favicon.svg',location.href).href,sizes:'any',type:'image/svg+xml'}],
       share_target:{action:location.href.split('#')[0].split('?')[0],method:'GET',enctype:'application/x-www-form-urlencoded',params:{title:'title',text:'text',url:'url'}}};
     const url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
     $('#manifestLink').href=url;
