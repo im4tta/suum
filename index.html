@@ -354,6 +354,7 @@ body.focus .stage-hint{opacity:.6}
   body[data-tab="layers"] section[data-group="layers"]{display:block}
   body[data-tab="smart"] section[data-group="smart"]{display:block}
   body[data-tab="canvas"] section[data-group="canvas"]{display:block}
+  body[data-tab="3d"] section[data-group="3d"]{display:block}
   section[data-group="devices"]{order:1}
   section[data-group="screens"]{order:2}
   section[data-group="style"]{order:3}
@@ -361,7 +362,8 @@ body.focus .stage-hint{opacity:.6}
   section[data-group="video"]{order:5}
   section[data-group="layers"]{order:6}
   section[data-group="smart"]{order:7}
-  section[data-group="canvas"]{order:8;padding-bottom:24px}
+  section[data-group="canvas"]{order:8}
+  section[data-group="3d"]{order:9;padding-bottom:24px}
   .dgrid{grid-template-columns:1fr 1fr}
   .mtabs{display:flex;align-items:stretch;background:var(--panel);border-top:1px solid var(--line);z-index:20;overflow-x:auto;scrollbar-width:none}
   .mtabs::-webkit-scrollbar{display:none}
@@ -552,6 +554,30 @@ body.focus .stage-hint{opacity:.6}
         <p class="inline">Pick a tool, then click the scene to place it. Text tool uses the Title field from Video Studio.</p>
       </section>
 
+      <section data-group="3d">
+        <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg>3D View</div><span class="s-count">PERSPECTIVE</span></div>
+        <button class="recbtn" id="d3Toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg><span id="d3ToggleText">Enable 3D mode</span></button>
+        <p class="inline">Each device becomes a real perspective plane — rotate any frame to any angle. Works in images and video.</p>
+
+        <div class="vidlabels" style="margin-top:12px">Angle presets</div>
+        <div class="grid3" id="d3Presets">
+          <button class="tile" data-a="0,0,0">Front</button>
+          <button class="tile" data-a="-32,8,-4">Left ¾</button>
+          <button class="tile" data-a="32,8,4">Right ¾</button>
+          <button class="tile" data-a="0,-55,0">Top down</button>
+          <button class="tile" data-a="24,-22,12">Island</button>
+          <button class="tile" data-a="180,0,0">Back</button>
+        </div>
+
+        <div class="vidlabels" style="margin-top:14px">Selected device</div>
+        <div class="slider-row"><div class="slider-top"><label for="d3Yaw">Yaw / turn</label><output id="d3YawVal">0°</output></div><input type="range" id="d3Yaw" min="-180" max="180" value="0"></div>
+        <div class="slider-row"><div class="slider-top"><label for="d3Pitch">Pitch / tilt</label><output id="d3PitchVal">0°</output></div><input type="range" id="d3Pitch" min="-90" max="90" value="0"></div>
+        <div class="slider-row"><div class="slider-top"><label for="d3Roll">Roll / spin</label><output id="d3RollVal">0°</output></div><input type="range" id="d3Roll" min="-180" max="180" value="0"></div>
+        <div class="slider-row"><div class="slider-top"><label for="d3Depth">Perspective</label><output id="d3DepthVal">35%</output></div><input type="range" id="d3Depth" min="0" max="100" value="35"></div>
+        <div class="grid2"><button class="tiny-btn" id="d3ApplyAll">Apply angles to all</button><button class="tiny-btn" id="d3Reset">Reset angles</button></div>
+        <p class="inline">Drag on the scene to rotate. Hold <b>Shift</b> while dragging to roll. Hold <b>Alt</b> to move the device instead.</p>
+      </section>
+
       <section data-group="export">
         <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Export</div></div>
         <div class="seg" id="fmt"></div>
@@ -647,6 +673,7 @@ body.focus .stage-hint{opacity:.6}
     <button data-g="layers" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/></svg>Layers</button>
     <button data-g="smart" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1"/></svg>Smart</button>
     <button data-g="canvas" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg>Canvas</button>
+    <button data-g="3d" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg>3D</button>
   </nav>
 
   <footer class="statusbar">
@@ -781,7 +808,7 @@ const LIVE=[
 /* ==========================================================================
    STATE
    ========================================================================== */
-const slot=(dev='i16p')=>({dev,finish:0,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0});
+const slot=(dev='i16p')=>({dev,finish:0,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
 function preset(n){
   const sets={
     1:[slot('i16p')],
@@ -796,6 +823,7 @@ const S={
   a:BGS[0][0], b:BGS[0][1], bg:0, tr:0, fmt:'png', k:2,
   liveOn:true, images:[], armed:null, boxes:[],
   notes:[], noteSel:-1, imgTool:null, toolColor:'#FF5C35',
+  d3:{on:0,depth:35,mode:'yaw'},
   bgMedia:{type:'none',url:'',blur:0,tilt:0,reflect:0}, customFrame:null,
   brand:{font:'Space Grotesk',logo:'FrameKit',colors:['#FF5C35','#1B1D22','#EDE4D9']},
   scenes:[], queue:[], keys:[], captions:[], voiceover:null,
@@ -1015,6 +1043,66 @@ function motionOf(p,W,H){
   else if(m.motion==='pulse')sc=1+Math.sin(p*Math.PI*2)*a*.08;
   return{x,y,sc,rot};
 }
+/* ---------- perspective 3D texture mapping ---------- */
+function project3(u,v,cx,cy,P,sl){
+  const ry=(sl.ry||0)*Math.PI/180,rx=(sl.rx||0)*Math.PI/180,rz=(sl.rz||0)*Math.PI/180;
+  let x=u,y=v,z=0;
+  let x1=x*Math.cos(ry)+z*Math.sin(ry),z1=-x*Math.sin(ry)+z*Math.cos(ry);
+  let y2=y*Math.cos(rx)-z1*Math.sin(rx),z2=y*Math.sin(rx)+z1*Math.cos(rx);
+  let x3=x1*Math.cos(rz)-y2*Math.sin(rz),y3=x1*Math.sin(rz)+y2*Math.cos(rz);
+  const zz=Math.max(-P*.85,z2),k=P/(P+zz);
+  return{x:cx+x3*k,y:cy+y3*k,z:zz};
+}
+function drawTri(ctx,img,s,d){
+  const det=(s[1].x-s[0].x)*(s[2].y-s[0].y)-(s[2].x-s[0].x)*(s[1].y-s[0].y);
+  if(Math.abs(det)<.0001)return;
+  const a=((d[1].x-d[0].x)*(s[2].y-s[0].y)-(d[2].x-d[0].x)*(s[1].y-s[0].y))/det;
+  const b=((d[2].x-d[0].x)*(s[1].x-s[0].x)-(d[1].x-d[0].x)*(s[2].x-s[0].x))/det;
+  const cc=((d[1].y-d[0].y)*(s[2].y-s[0].y)-(d[2].y-d[0].y)*(s[1].y-s[0].y))/det;
+  const dd=((d[2].y-d[0].y)*(s[1].x-s[0].x)-(d[1].y-d[0].y)*(s[2].x-s[0].x))/det;
+  const e=d[0].x-a*s[0].x-b*s[0].y,f=d[0].y-cc*s[0].x-dd*s[0].y;
+  const mx=(d[0].x+d[1].x+d[2].x)/3,my=(d[0].y+d[1].y+d[2].y)/3;
+  const grow=p=>({x:p.x+(p.x-mx)*.012,y:p.y+(p.y-my)*.012});
+  const dg=d.map(grow);
+  ctx.save();ctx.beginPath();ctx.moveTo(dg[0].x,dg[0].y);ctx.lineTo(dg[1].x,dg[1].y);ctx.lineTo(dg[2].x,dg[2].y);ctx.closePath();
+  ctx.clip();ctx.transform(a,b,cc,dd,e,f);ctx.drawImage(img,0,0);ctx.restore();
+}
+function drawTextured(ctx,img,q,n){
+  const W=img.width,H=img.height,L=(a,b,t)=>a+(b-a)*t;
+  const map=(u,v)=>{const t={x:L(q[0].x,q[1].x,u),y:L(q[0].y,q[1].y,u)},bt={x:L(q[3].x,q[2].x,u),y:L(q[3].y,q[2].y,u)};
+    return{x:L(t.x,bt.x,v),y:L(t.y,bt.y,v)}};
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+    const u0=i/n,u1=(i+1)/n,v0=j/n,v1=(j+1)/n;
+    const d00=map(u0,v0),d10=map(u1,v0),d11=map(u1,v1),d01=map(u0,v1);
+    const s00={x:u0*W,y:v0*H},s10={x:u1*W,y:v0*H},s11={x:u1*W,y:v1*H},s01={x:u0*W,y:v1*H};
+    drawTri(ctx,img,[s00,s10,s11],[d00,d10,d11]);
+    drawTri(ctx,img,[s00,s11,s01],[d00,d11,d01]);
+  }
+}
+function drawDevice3D(c,W,H,t,sl,d,g,f,cx,cy,staggerAlpha){
+  const pad=Math.ceil(Math.max(g.W,g.H)*.04)+30,ow=g.W+pad*2,oh=g.H+pad*2;
+  const off=document.createElement('canvas');off.width=ow;off.height=oh;
+  const oc=off.getContext('2d');oc.translate(ow/2,oh/2);
+  if(S.land)oc.rotate(-Math.PI/2);
+  drawDevice(oc,d,sl,1,1,t);
+  if(S.customFrame&&S.customFrame.img){
+    const fi=S.customFrame.img,fs=S.customFrame.scale/100,fw=g.W*fs,fh=fi.height*fw/fi.width,by=-g.H/2+g.pt+g.bh/2;
+    oc.drawImage(fi,-fw/2,by-fh/2,fw,fh);
+  }
+  const pw=(S.land?g.H:g.W)*f,ph=(S.land?g.W:g.H)*f;
+  const P=Math.max(pw,ph)*(2.3-S.d3.depth/45);
+  const corners=[project3(-pw/2,-ph/2,cx,cy,P,sl),project3(pw/2,-ph/2,cx,cy,P,sl),
+                 project3(pw/2,ph/2,cx,cy,P,sl),project3(-pw/2,ph/2,cx,cy,P,sl)];
+  c.save();if(staggerAlpha!=null)c.globalAlpha=staggerAlpha;
+  drawTextured(c,off,corners,8);
+  c.restore();
+  const px=pad/ow,py=pad/oh;
+  const inner=[project3(-pw/2+px*pw,-ph/2+py*ph,cx,cy,P,sl),project3(pw/2-px*pw,-ph/2+py*ph,cx,cy,P,sl),
+               project3(pw/2-px*pw,ph/2-py*ph,cx,cy,P,sl),project3(-pw/2+px*pw,ph/2-py*ph,cx,cy,P,sl)];
+  const xs=inner.map(p=>p.x),ys=inner.map(p=>p.y);
+  return{cx:(Math.min(...xs)+Math.max(...xs))/2,cy:(Math.min(...ys)+Math.max(...ys))/2,
+    w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys),z:corners.reduce((a,p)=>a+p.z,0)/4};
+}
 function drawScene(c,W,H,K,t){
   c.save();c.scale(K,K);c.clearRect(0,0,W,H);
   const m=S.vid,p=Math.max(0,Math.min(1,m.progress||0));
@@ -1029,6 +1117,26 @@ function drawScene(c,W,H,K,t){
   S.boxes=[];
   c.save();
   if(mv){c.translate(W/2+mv.x,H/2+mv.y);c.rotate(mv.rot*Math.PI/180);c.scale(mv.sc,mv.sc);c.translate(-W/2,-H/2)}
+  if(S.d3.on){
+    const list=S.slots.map((sl,i)=>{
+      if(sl.hidden)return null;
+      const d=DEV.find(z=>z.id===sl.dev)||DEV[0],g=geo(d);
+      const bw=S.land?g.H:g.W,bh=S.land?g.W:g.H,P=Math.max(W,H);
+      const z=[[-bw/2,-bh/2],[bw/2,-bh/2],[bw/2,bh/2],[-bw/2,bh/2]]
+        .reduce((a,[u,v])=>a+project3(u,v,0,0,P,sl).z,0)/4;
+      return{i,z};
+    }).filter(Boolean);
+    list.sort((a,b)=>a.z-b.z);
+    list.forEach(o=>{
+      const i=o.i,sl=S.slots[i],d=DEV.find(z=>z.id===sl.dev)||DEV[0],g=geo(d);
+      const bw=S.land?g.H:g.W,bh=S.land?g.W:g.H;
+      const f=Math.min(W*.78/bw,H*.78/bh)*sl.s;
+      const cx=W/2+sl.x*W,cy=H/2+sl.y*H;
+      const al=m.active&&m.stagger?Math.max(0,Math.min(1,(p-i*.07)/.28)):null;
+      const box=drawDevice3D(c,W,H,t,sl,d,g,f,cx,cy,al);
+      S.boxes[i]={cx:box.cx,cy:box.cy,w:box.w,h:box.h,a:0};
+    });
+  }else{
   S.slots.forEach((sl,i)=>{
     if(sl.hidden){S.boxes[i]=null;return}
     const d=DEV.find(z=>z.id===sl.dev)||DEV[0], g=geo(d);
@@ -1054,6 +1162,7 @@ function drawScene(c,W,H,K,t){
     }
     S.boxes[i]={cx,cy,w:bw*f,h:bh*f,a};
   });
+  }
   if(S.bgMedia.reflect>0&&!S.tr){
     const gf=c.createLinearGradient(0,H*.6,0,H);gf.addColorStop(0,'transparent');gf.addColorStop(1,S.a);
     c.fillStyle=gf;c.fillRect(0,H*.6,W,H*.4);
@@ -1285,7 +1394,7 @@ addEventListener('paste',async e=>{
 /* ---- direct canvas interaction ---- */
 function pt(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*(cv.width/r.width),y:(e.clientY-r.top)*(cv.height/r.height)}}
 function hit(p){for(let i=S.slots.length-1;i>=0;i--){const b=S.boxes[i];if(!b)continue;const dx=p.x-b.cx,dy=p.y-b.cy,c=Math.cos(-b.a),s=Math.sin(-b.a);const lx=dx*c-dy*s,ly=dx*s+dy*c;if(Math.abs(lx)<=b.w/2&&Math.abs(ly)<=b.h/2)return i}return -1}
-const pointers=new Map();let drag=null,pinch=null;
+const pointers=new Map();let drag=null,pinch=null,rotDrag=null;
 function placeNote(p){
   const nx=p.x/cv.width,ny=p.y/cv.height;
   if(S.imgTool==='arrow'){
@@ -1300,6 +1409,12 @@ function placeNote(p){
 $('#abBody').addEventListener('pointerdown',e=>{
   const p=pt(e);pointers.set(e.pointerId,p);try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}
   if(S.imgTool){placeNote(p);return}
+  if(S.d3.on&&!e.altKey){
+    const i=hit(p);
+    if(i>=0){S.sel=i;const sl=S.slots[i];
+      rotDrag={i,x:p.x,y:p.y,ry:sl.ry||0,rx:sl.rx||0,rz:sl.rz||0,roll:e.shiftKey};sync();}
+    return;
+  }
   if(pointers.size===2){
     const [a,b]=[...pointers.values()];const sl=S.slots[S.sel];
     pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,ang:Math.atan2(b.y-a.y,b.x-a.x),s:sl.s,r:sl.r};drag=null;return;
@@ -1313,6 +1428,16 @@ $('#abBody').addEventListener('pointerdown',e=>{
 });
 $('#abBody').addEventListener('pointermove',e=>{
   const p=pt(e);if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,p);
+  if(rotDrag){
+    const sl=S.slots[rotDrag.i],dx=(p.x-rotDrag.x)/cv.width*360,dy=(p.y-rotDrag.y)/cv.height*180;
+    const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+    if(rotDrag.roll)sl.rz=cl(rotDrag.rz+dx,-180,180);
+    else{sl.ry=cl(rotDrag.ry+dx,-180,180);sl.rx=cl(rotDrag.rx-dy,-90,90)}
+    [['d3Yaw',sl.ry],['d3Pitch',sl.rx],['d3Roll',sl.rz]].forEach(([id,v])=>{
+      const el=$('#'+id);el.value=Math.round(v);$('#'+id+'Val').textContent=Math.round(v)+'°';fillRange(el);
+    });
+    render();return;
+  }
   if(pinch&&pointers.size===2){
     const [a,b]=[...pointers.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,ang=Math.atan2(b.y-a.y,b.x-a.x);
     const sl=S.slots[S.sel];sl.s=Math.max(.4,Math.min(1.6,pinch.s*d/pinch.d));sl.r=Math.max(-45,Math.min(45,pinch.r+(ang-pinch.ang)*180/Math.PI));
@@ -1331,7 +1456,7 @@ $('#abBody').addEventListener('pointermove',e=>{
     render();
   }
 });
-function endPointer(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}}
+function endPointer(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
 $('#abBody').addEventListener('pointerup',endPointer);
 $('#abBody').addEventListener('pointercancel',endPointer);
 $('#abBody').addEventListener('dblclick',e=>{const i=hit(pt(e));if(i>=0){Object.assign(S.slots[i],{x:0,y:0,s:1,r:0});S.sel=i;sync();commit();say('Device '+ (i+1)+' reset')}});
@@ -1345,6 +1470,21 @@ function syncSliders(){
 /* ==========================================================================
    SYNC / EXPORT / THEME / SHORTCUTS
    ========================================================================== */
+/* ==========================================================================
+   3D VIEW controls
+   ========================================================================== */
+$('#d3Toggle').onclick=()=>{S.d3.on=S.d3.on?0:1;sync();say(S.d3.on?'3D mode on — drag to rotate':'3D mode off')};
+$$('#d3Presets button').forEach(b=>b.onclick=()=>{
+  const [y,p,r]=b.dataset.a.split(',').map(Number);
+  Object.assign(S.slots[S.sel],{ry:y,rx:p,rz:r});sync();commit();say('Angle preset applied');
+});
+[['d3Yaw','ry'],['d3Pitch','rx'],['d3Roll','rz']].forEach(([id,k])=>{
+  const el=$('#'+id);el.oninput=()=>{S.slots[S.sel][k]=+el.value;$('#'+id+'Val').textContent=el.value+'°';fillRange(el);render()};el.onchange=commit;
+});
+const d3dep=$('#d3Depth');d3dep.oninput=()=>{S.d3.depth=+d3dep.value;$('#d3DepthVal').textContent=d3dep.value+'%';fillRange(d3dep);render()};d3dep.onchange=commit;
+$('#d3ApplyAll').onclick=()=>{const s=S.slots[S.sel];S.slots.forEach(x=>{x.ry=s.ry;x.rx=s.rx;x.rz=s.rz});sync();commit();say('Angles applied to all devices')};
+$('#d3Reset').onclick=()=>{S.slots.forEach(s=>{s.ry=0;s.rx=0;s.rz=0});sync();commit();say('All angles reset')};
+
 /* ==========================================================================
    CANVAS — backdrop media, frames, crop, annotations
    ========================================================================== */
@@ -1514,7 +1654,7 @@ const TEMPLATES=[
 /* scene state / save / load / share */
 function sceneState(){return JSON.stringify({
   slots:S.slots.map(s=>({...s})),n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,land:S.land,shadow:S.shadow,
-  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,notes:S.notes,keys:S.keys,captions:S.captions,
+  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,notes:S.notes,keys:S.keys,captions:S.captions,d3:{...S.d3},
   vid:{...S.vid,active:0,playing:0,progress:0,playhead:0,t0:0,audio:null},
   bgMedia:{...S.bgMedia,url:S.bgMedia.url},images:S.images.map(i=>({url:i.url,name:i.name}))
 })}
@@ -1662,6 +1802,12 @@ function sync(){
     const el=$('#'+id);if(!el)return;if(+el.value!==v){el.value=v;fillRange(el)}$('#'+id+'Val').textContent=v+su;
   });
   $('#imgToolToggle').textContent='Drag-inside-screen mode: '+(S.imgDrag?'ON':'OFF');
+  $('#d3Toggle').classList.toggle('on',!!S.d3.on);
+  $('#d3ToggleText').textContent=S.d3.on?'3D mode is ON':'Enable 3D mode';
+  const sl3=S.slots[S.sel];
+  [['d3Yaw',sl3.ry||0,'°'],['d3Pitch',sl3.rx||0,'°'],['d3Roll',sl3.rz||0,'°'],['d3Depth',S.d3.depth,'%']].forEach(([id,v,su])=>{
+    const el=$('#'+id);if(!el)return;if(+el.value!==v){el.value=v;fillRange(el)}$('#'+id+'Val').textContent=v+su;
+  });
   syncSliders();renderShots();renderLayers();renderKeys();renderQueue();render();
 }
 
