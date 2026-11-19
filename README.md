@@ -72,6 +72,7 @@ Drop a screenshot onto the stage (or paste with `Ctrl/⌘ + V`), pick a device, 
 - PNG / JPG / WebP at 1×, 2× or 3×.
 - Copy image to clipboard, with robust fallbacks.
 - Themed slim scrollbars, light/dark/system themes, focus mode, and a mobile bottom-tab layout.
+- The right inspector is organised into clean tabs — **Style, Smart, Canvas, 3D, Export, Video** — so each group's controls stay uncluttered.
 
 ## Keyboard shortcuts
 
