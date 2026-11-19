@@ -1,6 +1,8 @@
 <div align="center">
 
-# FrameKit Studio
+# ស៊ុម Summ
+
+*ស៊ុម — Khmer for “frame”.*
 
 **A device-mockup scene builder and video studio that runs entirely in your browser.**
 
@@ -13,7 +15,7 @@
 
 ---
 
-FrameKit Studio turns a screenshot into a polished product scene. Pick from 54 real devices, compose up to four of them, drop in screenshots or use animated live screens, then export a high-resolution image or a fully directed video — without uploading anything anywhere.
+Summ turns a screenshot into a polished product scene. Pick from 54 real devices, compose up to four of them, drop in screenshots or use animated live screens, then export a high-resolution image or a fully directed video — without uploading anything anywhere.
 
 Everything is one self-contained HTML file. No build step, no dependencies, no server.
 
@@ -38,7 +40,7 @@ Drop a screenshot onto the stage (or paste with `Ctrl/⌘ + V`), pick a device, 
 ### Scenes
 - **54 real devices** — iPhone 18 Pro / iPhone Duo, Galaxy S26 Ultra / Z Fold8, Pixel 11 series, OnePlus 15, Xiaomi 16 Ultra, iPad Pro M5, MacBook Pro M6, iMac M6, Apple Watch Series 12 / Ultra 4, Galaxy Watch9, Pixel Watch 5, and more — each built from its published dimensions (height, width, thickness, corner radius) with real hardware details: Dynamic Island, punch holes, fold hinges, watch crowns, side buttons and each model's actual rear camera layout.
 - **Real colourways** — each model offers only its own official finishes (e.g. iPhone 18 Pro in Silver, Glacier Blue, Burgundy, Deep Black; Pixel 11 Pro in Obsidian, Fog, Canyon, Olive). Switching models keeps the closest real colour.
-- **Capture from URL** — paste a website address and FrameKit renders the page at the selected device's real screen size (via microlink.io) and places it on that device. Direct image links are placed as-is.
+- **Capture from URL** — paste a website address and Summ renders the page at the selected device's real screen size (via microlink.io) and places it on that device. Direct image links are placed as-is.
 - **Live site in the device** — press **Live** to load a URL (including `localhost` dev servers) interactively inside the selected device at its real viewport. Click, scroll and type right in the mockup; drag the bezel to move it. Esc exits.
 - **Zoom the preview** — scroll to zoom toward the cursor, drag empty space to pan, double-click or press `0` to reset.
 - **Universal flipping** — every device rotates to landscape with the `L` key. Cameras, notches and crowns stay in the correct relative place.
