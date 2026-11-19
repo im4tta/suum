@@ -472,6 +472,7 @@ body.focus .stage-hint{opacity:.6}
         <button class="addshot" id="addShot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Add screenshots (multiple)</button>
         <form class="urlrow" id="urlForm"><input class="vinput" id="shotUrl" type="text" inputmode="url" autocomplete="url" placeholder="Website or image URL" aria-label="Website or image URL"><button class="tiny-btn" id="shotUrlGo" type="submit">Capture</button><button class="tiny-btn" id="shotUrlLive" type="button" title="Load the site live and interactive inside the selected device">Live</button></form>
         <p class="inline" style="margin-top:6px"><b>Capture</b> renders the page at the selected device’s real screen size (via the public microlink.io service). <b>Live</b> opens it interactively inside the device — works with localhost dev servers; some sites block embedding.</p>
+        <details class="inline" style="margin-top:4px"><summary style="cursor:pointer">Screenshot API key (optional)</summary><input class="vinput" id="shotKey" type="password" autocomplete="off" placeholder="microlink.io API key — lifts the free daily limit" style="margin-top:6px"><span style="font-size:10.5px">Saved only in this browser.</span></details>
         <button class="btn-ghost" id="pasteBtn" style="width:100%;margin-top:7px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 13h6m-6 4h4"/></svg>Paste image from clipboard</button>
         <div class="shots" id="shots"></div>
         <div class="empty-hint" id="shotHint">Add images, then tap one to place it on the selected device. Or drag it onto a device in the scene.</div>
@@ -1979,16 +1980,22 @@ function fetchImageBlob(u){
   return fetch(u,{mode:'cors',credentials:'omit'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.blob()})
     .then(b=>{if(!/^image\//.test(b.type))throw new Error('not an image');return b});
 }
+function shotKey(){try{return localStorage.getItem('fk.mlkey')||''}catch(_){return ''}}
 const SHOT_SERVICES=[
-  (url,w,h)=>fetch('https://api.microlink.io/?'+new URLSearchParams({url,screenshot:'true',meta:'false',
-      'viewport.width':w,'viewport.height':h,'viewport.deviceScaleFactor':'2','viewport.isMobile':String(w<700),'viewport.hasTouch':String(w<1100),waitForTimeout:'1200'}))
-    .then(r=>r.json()).then(j=>{const u=j&&j.data&&j.data.screenshot&&j.data.screenshot.url;if(!u)throw new Error((j&&j.message)||'no screenshot');return fetchImageBlob(u)}),
+  (url,w,h)=>{const key=shotKey();
+    return fetch((key?'https://pro.microlink.io/?':'https://api.microlink.io/?')+new URLSearchParams({url,screenshot:'true',meta:'false',
+      'viewport.width':w,'viewport.height':h,'viewport.deviceScaleFactor':'2','viewport.isMobile':String(w<700),'viewport.hasTouch':String(w<1100),waitForTimeout:'1200'}),
+      key?{headers:{'x-api-key':key}}:{})
+    .then(r=>{if(r.status===429){const e=new Error('limit');e.code=429;throw e}if(r.status===401||r.status===403){const e=new Error('key');e.code=401;throw e}return r.json()})
+    .then(j=>{const u=j&&j.data&&j.data.screenshot&&j.data.screenshot.url;if(!u)throw new Error((j&&j.message)||'no screenshot');return fetchImageBlob(u)})},
   (url,w,h)=>fetchImageBlob('https://image.thum.io/get/noanimate/viewportWidth/'+w+'/width/'+(w*2)+'/crop/'+(h*2)+'/'+url)
 ];
+const SHOT_CACHE=new Map();
 function captureAt(url,w,h){
-  let p=Promise.reject();
-  SHOT_SERVICES.forEach(fn=>{p=p.catch(()=>fn(url,w,h))});
-  return p;
+  const ck=url+'|'+w+'x'+h;if(SHOT_CACHE.has(ck))return Promise.resolve(SHOT_CACHE.get(ck));
+  const errs=[];let p=Promise.reject();
+  SHOT_SERVICES.forEach(fn=>{p=p.catch(e=>{if(e)errs.push(e);return fn(url,w,h)})});
+  return p.then(b=>{SHOT_CACHE.set(ck,b);return b},e=>{errs.push(e);const x=new Error('capture failed');x.errs=errs;throw x});
 }
 function blobToImage(b){return new Promise((res,rej)=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>res({url:u,img:im});im.onerror=()=>rej(new Error('decode'));im.src=u})}
 async function captureUrl(raw){
@@ -2011,17 +2018,20 @@ async function captureUrl(raw){
     /* otherwise render the page once per distinct device viewport */
     const views=new Map();
     slots.forEach(sl=>{const v=viewportOf(devOf(sl)),k=v.w+'x'+v.h;if(!views.has(k))views.set(k,{...v,slots:[]});views.get(k).slots.push(sl)});
-    let done=0,failed=0;const total=views.size;
+    let done=0,failed=0,lastErr=null;const total=views.size;
     say('Capturing '+host+' at '+total+' screen size'+(total>1?'s':'')+'…');
     await Promise.all([...views.values()].map(v=>captureAt(url,v.w,v.h).then(blobToImage).then(o=>{
       S.images.push({url:o.url,img:o.img,name:host+' · '+v.w+'×'+v.h});
       v.slots.forEach(sl=>assign(sl,S.images.length-1));
       done++;renderShots();sync();say('Captured '+done+'/'+total+' · '+v.w+'×'+v.h);
-    }).catch(()=>{failed++})));
-    if(!done)throw new Error('capture failed');
+    }).catch(e=>{failed++;lastErr=e})));
+    if(!done)throw lastErr||new Error('capture failed');
     commit();say('Captured '+host+' on device '+(S.sel+1));
   }catch(e){
-    say('Couldn’t capture that page. Try again, use a direct image link, or drop a screenshot in.');
+    const codes=((e&&e.errs)||[]).map(x=>x&&x.code);
+    if(codes.includes(401))say('Screenshot API key was rejected — check it under the URL field.');
+    else if(codes.includes(429))say('The free screenshot service hit its daily limit. Add your own microlink.io key below the URL field, or try again tomorrow.');
+    else say('Couldn’t capture that page. Try again, use a direct image link, or drop a screenshot in.');
   }finally{btn.disabled=false;btn.textContent='Capture'}
 }
 /* ---------- preview zoom (scroll wheel) ---------- */
@@ -2055,6 +2065,7 @@ function startLive(raw){
   LIVESITE.on=true;LIVESITE.slot=S.sel;LIVESITE.url=url;LIVESITE.dev='';
   $('#abLive').hidden=false;placeLive();
   say('Live: '+new URL(url).host+' on device '+(S.sel+1)+' — drag the bezel to move, Esc to exit');
+  clearTimeout(LIVESITE.hint);LIVESITE.hint=setTimeout(()=>{if(LIVESITE.on&&LIVESITE.url===url)say('Blank screen? '+new URL(url).host+' blocks embedding (X-Frame-Options / frame-ancestors). Use Capture, or allow this origin on your site.')},4500);
 }
 function stopLive(){LIVESITE.on=false;$('#liveLayer').innerHTML='';LIVESITE.el=null;$('#abLive').hidden=true;say('Live site closed')}
 function placeLive(){
@@ -2088,6 +2099,8 @@ function placeLive(){
 }
 $('#abLive').onclick=stopLive;
 $('#shotUrlLive').onclick=()=>startLive($('#shotUrl').value);
+$('#shotKey').value=shotKey();
+$('#shotKey').onchange=e=>{try{const v=e.target.value.trim();v?localStorage.setItem('fk.mlkey',v):localStorage.removeItem('fk.mlkey')}catch(_){}SHOT_CACHE.clear();say(e.target.value.trim()?'API key saved in this browser':'API key removed')};
 $('#urlForm').onsubmit=e=>{e.preventDefault();captureUrl($('#shotUrl').value)};
 $('#shotClear').onclick=()=>{S.images=[];S.slots.forEach(s=>s.img=null);S.armed=null;renderShots();sync();commit();say('All screenshots cleared')};
 
@@ -2912,13 +2925,13 @@ addEventListener('keydown',e=>{
     const manifest={name:'FrameKit Studio',short_name:'FrameKit',description:'Device mockups and video scenes',
       start_url:location.href.split('#')[0],display:'standalone',background_color:'#0B0B0D',theme_color:'#FF5C35',
       icons:[{src:icon,sizes:'192x192',type:'image/png'},[{src:icon,sizes:'512x512',type:'image/png'}][0]],
-      share_target:{action:location.href.split('#')[0],method:'GET',params:{title:'title',text:'text',files:[{name:'files',accept:['image/*']}]}}};
+      share_target:{action:location.href.split('#')[0].split('?')[0],method:'GET',enctype:'application/x-www-form-urlencoded',params:{title:'title',text:'text',url:'url'}}};
     const url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
     $('#manifestLink').href=url;
   }catch(_){}
 })();
 let deferredPrompt=null;
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
+addEventListener('beforeinstallprompt',e=>{deferredPrompt=e});
 $('#installApp').onclick=async()=>{
   if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;deferredPrompt=null;say(r.outcome==='accepted'?'Installing FrameKit':'Install cancelled');return}
   say('Use your browser menu → Install app / Add to Home screen');
@@ -2926,6 +2939,8 @@ $('#installApp').onclick=async()=>{
 
 /* Boot */
 applyTh();renderBrand();renderScenes();sync();commit();updateTabArrows();requestAnimationFrame(tick);
+try{const q=new URLSearchParams(location.search),shared=[q.get('url'),q.get('text'),q.get('title')].join(' ').match(/https?:\/\/\S+/);
+  if(shared){$('#shotUrl').value=shared[0];say('Shared link ready — press Capture or Live');history.replaceState(null,'',location.pathname+location.hash)}}catch(_){}
 try{const hm=location.hash.match(/s=(.+)/);if(hm)restoreState(decodeURIComponent(escape(atob(hm[1]))))}catch(_){}
 </script>
 </body>
