@@ -17,6 +17,8 @@ FrameKit Studio turns a screenshot into a polished product scene. Pick from 54 r
 
 Everything is one self-contained HTML file. No build step, no dependencies, no server.
 
+**Live demo:** <https://im4tta.github.io/suum/>
+
 ## Quick start
 
 Open `index.html` in any modern browser.
