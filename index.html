@@ -391,8 +391,16 @@ body.focus .stage-hint{opacity:.6}
   .brand h1{font-size:16px}
   #undoBtn,#redoBtn{display:none}
   .main{display:flex;flex-direction:column;overflow:auto}
-  .stage{order:0;flex:none;min-height:46vh;padding:18px 14px;border-bottom:1px solid var(--line)}
-  canvas{max-height:40vh}
+  /* live preview stays pinned while the panels scroll underneath */
+  .stage{order:0;flex:none;position:sticky;top:0;z-index:15;min-height:0;padding:8px 12px;gap:0;overflow:hidden;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,.7)}
+  .stage::before{display:none}
+  .stage .dropzone,.stage .stage-hint{display:none}
+  .artboard{max-width:min(100%,640px);margin:0 auto}
+  .ab-bar{height:30px;padding:0 11px}
+  .ab-body{padding:6px}
+  .ab-body canvas{max-height:34vh}
+  body.focus .stage{padding:12px 14px}
+  body.focus .ab-body canvas{max-height:70vh}
   .rtabs-wrap{display:none}
   .panel,.panel-inner{display:contents}
   section[data-group]{display:none;width:100%;padding:16px 14px 6px;border-bottom:1px solid var(--line)}
