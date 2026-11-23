@@ -337,6 +337,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .fab{display:none;position:absolute;right:10px;bottom:10px;z-index:6;width:46px;height:46px;border-radius:50%;border:0;color:#fff;place-items:center;background:linear-gradient(145deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35)}
 .fab svg{width:22px;height:22px}.fab:active{transform:scale(.94)}
 .ab-pill.zoom{cursor:pointer}.ab-pill.zoom:hover{color:var(--txt);border-color:var(--line2)}
+.ab-pill.freeze{color:var(--accent);border-color:var(--accent);cursor:pointer}.ab-pill.freeze:hover{background:var(--accent-soft)}.ab-pill.freeze.busy{opacity:.55;pointer-events:none}
 .ab-pill.live{color:#fff;background:#E5484D;border-color:#E5484D;cursor:pointer}
 
 
@@ -518,7 +519,7 @@ body.focus .stage-hint{opacity:.6}
         <div class="ab-bar">
           <div class="ab-lights"><i></i><i></i><i></i></div>
           <span class="ab-title" id="abTitle">iPhone 16 Pro</span>
-          <div class="ab-meta"><span class="ab-pill live" id="abLive" hidden title="Exit live site (Esc)">● LIVE ✕</span><span class="ab-pill zoom" id="abZoom" title="Scroll to zoom · click to reset (0)">100%</span><span class="ab-pill" id="abRatio">4:5</span><span class="ab-pill" id="abRes">1280 × 1600</span></div>
+          <div class="ab-meta"><span class="ab-pill freeze" id="abFreeze" hidden role="button" title="Turn the live page into a screenshot on this device">❄ Freeze</span><span class="ab-pill live" id="abLive" hidden title="Exit live site (Esc)">● LIVE ✕</span><span class="ab-pill zoom" id="abZoom" title="Scroll to zoom · click to reset (0)">100%</span><span class="ab-pill" id="abRatio">4:5</span><span class="ab-pill" id="abRes">1280 × 1600</span></div>
         </div>
         <div class="ab-body" id="abBody" tabindex="0">
           <canvas id="c" role="img" aria-label="Scene preview"></canvas>
@@ -2116,11 +2117,11 @@ function startLive(raw){
   try{url=new URL(url).href}catch(e){return say('That doesn’t look like a valid URL')}
   if(S.d3.on){S.d3.on=0;sync()}
   LIVESITE.on=true;LIVESITE.slot=S.sel;LIVESITE.url=url;LIVESITE.dev='';
-  $('#abLive').hidden=false;placeLive();
+  $('#abLive').hidden=false;$('#abFreeze').hidden=false;placeLive();
   say('Live: '+new URL(url).host+' on device '+(S.sel+1)+' — drag the bezel to move, Esc to exit');
   clearTimeout(LIVESITE.hint);LIVESITE.hint=setTimeout(()=>{if(LIVESITE.on&&LIVESITE.url===url)say('Blank screen? '+new URL(url).host+' blocks embedding (X-Frame-Options / frame-ancestors). Use Capture, or allow this origin on your site.')},4500);
 }
-function stopLive(){LIVESITE.on=false;$('#liveLayer').innerHTML='';LIVESITE.el=null;$('#abLive').hidden=true;say('Live site closed')}
+function stopLive(quiet){LIVESITE.on=false;$('#liveLayer').innerHTML='';LIVESITE.el=null;$('#abLive').hidden=true;$('#abFreeze').hidden=true;if(!quiet)say('Live site closed')}
 function placeLive(){
   const layer=$('#liveLayer');
   if(!LIVESITE.on)return;
@@ -2150,7 +2151,62 @@ function placeLive(){
   /* same transform the canvas uses for this device: translate → rotate → scale (canvas px → CSS px) */
   LIVESITE.el.style.transform='scale('+F.s+') translate('+b.cx+'px,'+b.cy+'px) rotate('+b.a+'rad) scale('+b.f+')';
 }
-$('#abLive').onclick=stopLive;
+$('#abLive').onclick=()=>stopLive();
+/* ---- freeze: turn the live page into a normal screenshot on the device ---- */
+function isPrivateHost(h){
+  h=h.toLowerCase();
+  return h==='localhost'||h.endsWith('.localhost')||h.endsWith('.local')||h.endsWith('.internal')||h.endsWith('.test')||h==='[::1]'||
+    /^127\./.test(h)||/^10\./.test(h)||/^192\.168\./.test(h)||/^172\.(1[6-9]|2\d|3[01])\./.test(h)||/^0\.0\.0\.0$/.test(h);
+}
+const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+/* grab pixels of the iframe straight from this tab (works for localhost and anything the screenshot service can't reach) */
+async function captureTabRegion(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia)throw new Error('unsupported');
+  const body=$('#abBody'),fr=$('#liveLayer iframe'),keep={z:VIEW.z,x:VIEW.x,y:VIEW.y};
+  /* hide the side panels while grabbing so the page gets as many screen pixels as possible */
+  const wasFocus=document.body.classList.contains('focus');
+  if(!wasFocus){document.body.classList.add('focus');await nextFrame();setView(1,0,0);render()}
+  /* zoom the preview so the page fills as many pixels as possible */
+  const cr=cv.getBoundingClientRect(),r0=fr.getBoundingClientRect(),bb=body.getBoundingClientRect();
+  const a=(r0.left-cr.left)/VIEW.z,c=(r0.top-cr.top)/VIEW.z,bw=r0.width/VIEW.z,bh=r0.height/VIEW.z;
+  const z=Math.max(1,Math.min(8,Math.min((bb.width-8)/bw,(bb.height-8)/bh)));
+  const baseL=cr.left-VIEW.x,baseT=cr.top-VIEW.y;
+  setView(z,bb.left+bb.width/2-baseL-(a+bw/2)*z,bb.top+bb.height/2-baseT-(c+bh/2)*z);
+  const hw=[...document.querySelectorAll('#liveLayer .lv-hw')];hw.forEach(e=>e.style.visibility='hidden');
+  const toast=$('#toast'),tv=toast.style.visibility;toast.style.visibility='hidden';
+  const sel=ov.style.visibility;ov.style.visibility='hidden';
+  const rad=fr.style.borderRadius;fr.style.borderRadius='0';
+  let stream;
+  try{
+    stream=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:'browser'},audio:false,preferCurrentTab:true,selfBrowserSurface:'include'});
+    const vid=document.createElement('video');vid.muted=true;vid.srcObject=stream;await vid.play();
+    await new Promise(r=>setTimeout(r,450));await nextFrame();
+    const rr=fr.getBoundingClientRect(),k=vid.videoWidth/innerWidth;
+    const out=document.createElement('canvas');out.width=Math.round(rr.width*k);out.height=Math.round(rr.height*k);
+    out.getContext('2d').drawImage(vid,rr.left*k,rr.top*k,rr.width*k,rr.height*k,0,0,out.width,out.height);
+    return await new Promise((res,rej)=>out.toBlob(b=>b?res(b):rej(new Error('encode')),'image/png'));
+  }finally{
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+    fr.style.borderRadius=rad;hw.forEach(e=>e.style.visibility='');toast.style.visibility=tv;ov.style.visibility=sel;if(!wasFocus){document.body.classList.remove('focus');await nextFrame();render()}setView(keep.z,keep.x,keep.y);
+  }
+}
+async function freezeLive(){
+  if(!LIVESITE.on)return;
+  const btn=$('#abFreeze');btn.classList.add('busy');
+  const idx=LIVESITE.slot,sl=S.slots[idx],v=viewportOf(devOf(sl)),host=new URL(LIVESITE.url).hostname;
+  let blob=null,how='';
+  try{
+    if(!isPrivateHost(host)){say('Freezing '+host+'…');try{blob=await captureAt(LIVESITE.url,v.w,v.h);how='screenshot service'}catch(e){}}
+    if(!blob){say(isPrivateHost(host)?'Choose “This tab” and allow sharing to freeze a local page':'Service unavailable — capturing from this tab…');blob=await captureTabRegion();how='this tab'}
+    const o=await blobToImage(blob);
+    S.images.push({url:o.url,img:o.img,name:host+' · frozen'});
+    Object.assign(sl,{img:S.images.length-1,ix:0,iy:0,iscale:1});
+    stopLive(true);renderShots();sync();commit();say('Frozen onto device '+(idx+1)+' ('+how+')');
+  }catch(e){
+    say(e&&e.name==='NotAllowedError'?'Freeze cancelled — screen sharing was not allowed':e&&e.message==='unsupported'?'This browser can’t capture a tab. Use Capture for public sites.':'Couldn’t freeze that page. Try again or use Capture.');
+  }finally{btn.classList.remove('busy')}
+}
+$('#abFreeze').onclick=freezeLive;
 $('#shotUrlLive').onclick=()=>startLive($('#shotUrl').value);
 $('#shotKey').value=shotKey();
 $('#shotKey').onchange=e=>{try{const v=e.target.value.trim();v?localStorage.setItem('fk.mlkey',v):localStorage.removeItem('fk.mlkey')}catch(_){}SHOT_CACHE.clear();say(e.target.value.trim()?'API key saved in this browser':'API key removed')};
