@@ -11,7 +11,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link id="manifestLink" rel="manifest">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
 /* ============================================================
    SUUM (ស៊ុម) STUDIO — "Ink & Ember"
@@ -44,7 +44,7 @@ h1,h2,h3,.display{font-family:"Space Grotesk","Inter",sans-serif;margin:0}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
 ::selection{background:var(--accent);color:#fff}
-.app{display:grid;grid-template-rows:var(--topbar) 1fr var(--statusbar);height:100dvh}
+.app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:var(--topbar) 1fr var(--statusbar);height:100dvh}
 
 /* ---------- Topbar ---------- */
 .topbar{
@@ -67,6 +67,13 @@ button{cursor:pointer}
 .iconbtn:hover:not(:disabled){color:var(--txt);border-color:var(--line2);background:var(--elev);transform:translateY(-1px)}
 .iconbtn:disabled{opacity:.35;cursor:not-allowed}
 .iconbtn svg{width:17px;height:17px}
+.iconbtn#lang{width:auto;min-width:37px;padding:0 9px;font:700 11px/1 "Inter","Noto Sans Khmer",sans-serif;letter-spacing:0}
+/* Khmer: no tracking or forced caps, and a font that carries the script everywhere */
+html[lang=km] *{letter-spacing:0!important;text-transform:none!important}
+html[lang=km] *{font-family:"Inter","Noto Sans Khmer",system-ui,sans-serif!important}
+html[lang=km] .brand h1,html[lang=km] .brand h1 *{font-family:"Space Grotesk","Noto Sans Khmer",sans-serif!important}
+html[lang=km] .btn-primary,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=km] .mtabs button{white-space:nowrap}
+html[lang=km] .tile,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=km] .chip,html[lang=km] .btn-ghost,html[lang=km] .live-btn{line-height:1.55}
 .iconbtn.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
 .btn-primary{display:flex;align-items:center;gap:9px;height:38px;padding:0 16px;border:0;border-radius:10px;color:#fff;font-weight:600;
   background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -12px var(--accent),inset 0 1px 0 rgba(255,255,255,.3);transition:.16s}
@@ -197,6 +204,9 @@ section[data-group]{scroll-margin-top:10px}
 
 /* Swatches */
 .swatches{display:flex;flex-wrap:wrap;gap:9px}
+.finish.cust{position:relative;overflow:hidden;cursor:pointer;background:conic-gradient(#ff5c35,#ffd23f,#3fd07a,#3fb8ff,#8a5cff,#ff5c9a,#ff5c35)}
+.finish.cust.has{background:var(--c)}
+.finish.cust input{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0;cursor:pointer;border:0;padding:0}
 .finish{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.07);
   background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.55),transparent 46%),linear-gradient(150deg,rgba(255,255,255,.16),transparent 50%),var(--c);
   box-shadow:inset 0 -7px 12px rgba(0,0,0,.4),0 4px 9px rgba(0,0,0,.28);position:relative;transition:.15s;padding:0}
@@ -331,7 +341,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 #liveLayer .lv-dev{position:absolute;left:0;top:0;transform-origin:0 0}
 #liveLayer iframe{position:absolute;border:0;background:#fff;pointer-events:auto;overflow:hidden}
 #liveLayer .lv-hw{position:absolute;background:#000;pointer-events:none}
+.fab{display:none;position:absolute;right:10px;bottom:10px;z-index:6;width:46px;height:46px;border-radius:50%;border:0;color:#fff;place-items:center;background:linear-gradient(145deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35)}
+.fab svg{width:22px;height:22px}.fab:active{transform:scale(.94)}
 .ab-pill.zoom{cursor:pointer}.ab-pill.zoom:hover{color:var(--txt);border-color:var(--line2)}
+.ab-pill.freeze{color:var(--accent);border-color:var(--accent);cursor:pointer}.ab-pill.freeze:hover{background:var(--accent-soft)}.ab-pill.freeze.busy{opacity:.55;pointer-events:none}
 .ab-pill.live{color:#fff;background:#E5484D;border-color:#E5484D;cursor:pointer}
 
 
@@ -395,6 +408,7 @@ body.focus .stage-hint{opacity:.6}
   .stage{order:0;flex:none;position:sticky;top:0;z-index:15;min-height:0;padding:8px 12px;gap:0;overflow:hidden;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,.7)}
   .stage::before{display:none}
   .stage .dropzone,.stage .stage-hint{display:none}
+  .fab{display:grid}
   .artboard{max-width:min(100%,640px);margin:0 auto}
   .ab-bar{height:30px;padding:0 11px}
   .ab-body{padding:6px}
@@ -456,6 +470,7 @@ body.focus .stage-hint{opacity:.6}
     <button class="iconbtn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
     <button class="iconbtn" id="focusBtn" title="Focus preview (F)" aria-label="Focus preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3m13 5h3a2 2 0 0 0 2-2v-3"/></svg></button>
     <button class="iconbtn" id="th" title="Switch theme" aria-label="Switch theme"></button>
+    <button class="iconbtn" id="lang" title="ប្តូរទៅភាសាខ្មែរ" aria-label="Language" data-notr>ខ្មែរ</button>
     <button class="btn-primary" id="expTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Export</span></button>
   </header>
 
@@ -512,12 +527,13 @@ body.focus .stage-hint{opacity:.6}
         <div class="ab-bar">
           <div class="ab-lights"><i></i><i></i><i></i></div>
           <span class="ab-title" id="abTitle">iPhone 16 Pro</span>
-          <div class="ab-meta"><span class="ab-pill live" id="abLive" hidden title="Exit live site (Esc)">● LIVE ✕</span><span class="ab-pill zoom" id="abZoom" title="Scroll to zoom · click to reset (0)">100%</span><span class="ab-pill" id="abRatio">4:5</span><span class="ab-pill" id="abRes">1280 × 1600</span></div>
+          <div class="ab-meta"><span class="ab-pill freeze" id="abFreeze" hidden role="button" title="Turn the live page into a screenshot on this device">❄ Freeze</span><span class="ab-pill live" id="abLive" hidden title="Exit live site (Esc)">● LIVE ✕</span><span class="ab-pill zoom" id="abZoom" title="Scroll to zoom · click to reset (0)">100%</span><span class="ab-pill" id="abRatio">4:5</span><span class="ab-pill" id="abRes">1280 × 1600</span></div>
         </div>
         <div class="ab-body" id="abBody" tabindex="0">
           <canvas id="c" role="img" aria-label="Scene preview"></canvas>
           <canvas id="ov" aria-hidden="true"></canvas>
           <div id="liveLayer"></div>
+          <button class="fab" id="fabAdd" type="button" aria-label="Add screenshots" title="Add screenshots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
       </div>
       <div class="dropzone" id="drop" tabindex="0" role="button" aria-label="Add screenshots">
@@ -652,6 +668,16 @@ body.focus .stage-hint{opacity:.6}
           <button class="tile" data-a="180,0,0">Back</button>
         </div>
 
+        <div class="vidlabels" style="margin-top:14px">Scene presets <span style="opacity:.6">· all devices</span></div>
+        <div class="grid3" id="d3Scenes">
+          <button class="tile" data-sc="hero">Hero</button>
+          <button class="tile" data-sc="side">Side by side</button>
+          <button class="tile" data-sc="stack">Stack</button>
+          <button class="tile" data-sc="duo">Front &amp; back</button>
+          <button class="tile" data-sc="flat">Flat lay</button>
+          <button class="tile" data-sc="iso">Isometric</button>
+        </div>
+
         <div class="vidlabels" style="margin-top:14px">Selected device</div>
         <div class="slider-row"><div class="slider-top"><label for="d3Yaw">Yaw / turn</label><output id="d3YawVal">0°</output></div><input type="range" id="d3Yaw" min="-180" max="180" value="0"></div>
         <div class="slider-row"><div class="slider-top"><label for="d3Pitch">Pitch / tilt</label><output id="d3PitchVal">0°</output></div><input type="range" id="d3Pitch" min="-90" max="90" value="0"></div>
@@ -663,6 +689,8 @@ body.focus .stage-hint{opacity:.6}
 
       <section data-group="export">
         <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Export</div></div>
+        <div class="vidlabels">Size preset</div>
+        <select class="vinput" id="sizePreset" aria-label="Export size preset"></select>
         <div class="seg" id="fmt"></div>
         <div class="seg" id="xs" style="margin-top:7px"></div>
         <div class="export-actions">
@@ -911,7 +939,7 @@ const DEVFIN={i16p:'ip16pro',i16pm:'ip16pro',i15:'ip15',se:'ipse',s24u:'s24u',s2
  tabs12:'tab12',mbp14m6:'mbp',mbp16m6:'mbp',mbaM5:'mba',imacM6:'imac',w12:'w12',wu4:'wultra',wse3:'wse',gw9:'gw',pw5:'pw'};
 const devOf=sl=>DEV.find(z=>z.id===sl.dev)||DEV[0];
 const finList=d=>FINS[DEVFIN[d.id]]||FINS.web;
-const finOf=sl=>{const L=finList(devOf(sl));return L[((sl.finish||0)%L.length+L.length)%L.length]};
+const finOf=sl=>{if(sl.custom)return['Custom',sl.custom];const L=finList(devOf(sl));return L[((sl.finish||0)%L.length+L.length)%L.length]};
 function nearestIn(L,hex){
   const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;let best=0,bd=1e9;
   L.forEach((f,i)=>{const v=parseInt(f[1].slice(1),16),dr=(v>>16)-r,dg=((v>>8)&255)-g,db=(v&255)-b,d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=i}});
@@ -948,7 +976,7 @@ const LIVE=[
 /* ==========================================================================
    STATE
    ========================================================================== */
-const slot=(dev='i16p')=>({dev,finish:0,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
+const slot=(dev='i16p')=>({dev,finish:0,custom:null,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
 function preset(n){
   const sets={
     1:[slot('i16p')],
@@ -982,7 +1010,11 @@ const BITRATE=[4000000,10000000,20000000,40000000];
 const VRES=[[1920,1080],[3840,2160]], VFPS=[30,60], VDUR=[3,5,10];
 
 const cv=$('#c'), cx=cv.getContext('2d'), ov=$('#ov'), ox=ov.getContext('2d');
-const dim=()=>{const[,w,h]=RAT[S.ratio],m=1600,q=Math.max(w,h);return[Math.round(m*w/q),Math.round(m*h/q)]};
+const SIZES=[
+ ['App Store · iPhone 6.9″',1320,2868],['App Store · iPhone 6.5″',1284,2778],['App Store · iPad 13″',2064,2752],
+ ['Google Play · phone',1080,1920],['Product Hunt gallery',1270,760],['X / Twitter post',1600,900],
+ ['Instagram post 4:5',1080,1350],['Instagram story 9:16',1080,1920],['LinkedIn post',1200,627],['Open Graph / link preview',1200,630],['YouTube thumbnail',1280,720]];
+const dim=()=>{const[,w,h]=S.target?[0,S.target[0],S.target[1]]:RAT[S.ratio],m=1600,q=Math.max(w,h);return[Math.round(m*w/q),Math.round(m*h/q)]};
 
 /* ==========================================================================
    DRAWING ENGINE
@@ -1843,14 +1875,14 @@ function render(){
   const d=DEV.find(z=>z.id===S.slots[S.sel].dev)||DEV[0];
   $('#abTitle').textContent=d.n+'  ·  device '+(S.sel+1);
   $('#abRatio').textContent=RAT[S.ratio][0];
-  $('#abRes').textContent=(w*S.k)+' × '+(h*S.k);
+  $('#abRes').textContent=S.target?S.target[0]+' × '+S.target[1]:(w*S.k)+' × '+(h*S.k);
   placeLive();
 }
 function tick(t){requestAnimationFrame(tick);if(!S.liveOn)return;if(t-lastFrame<33)return;lastFrame=t;render()}
 function say(msg){$('#status').textContent=msg;const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2400)}
 
 let hist=[],hi=-1;
-function snap(){return JSON.stringify({slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
+function snap(){return JSON.stringify({target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
 function commit(){hist=hist.slice(0,hi+1);hist.push(snap());hi=hist.length-1;histUI()}
 function restore(str){const o=JSON.parse(str);Object.assign(S,o);sync();render()}
 function undo(){if(hi>0){hi--;restore(hist[hi]);say('Undone')}}
@@ -1898,10 +1930,13 @@ function glyph(d){const k=d.id==='zf6o'?'foldOpen':d.id==='zfl6'?'foldOpen':d.fo
 })();
 
 function buildFinishes(){const el=$('#finishes'),d=devOf(S.slots[S.sel]);if(el.dataset.dev===d.id)return;el.dataset.dev=d.id;el.innerHTML='';
-  finList(d).forEach((p,i)=>{const b=document.createElement('button');b.className='finish';b.style.setProperty('--c',p[1]);b.title=p[0];b.setAttribute('aria-label',p[0]);b.onclick=()=>{S.slots[S.sel].finish=i;sync();commit()};el.append(b)})}
+  finList(d).forEach((p,i)=>{const b=document.createElement('button');b.className='finish';b.style.setProperty('--c',p[1]);b.title=p[0];b.setAttribute('aria-label',p[0]);b.onclick=()=>{const sl=S.slots[S.sel];sl.finish=i;sl.custom=null;sync();commit()};el.append(b)});
+  const cl=document.createElement('label');cl.className='finish cust';cl.title='Custom colour';cl.setAttribute('aria-label','Custom colour');
+  const ci=document.createElement('input');ci.type='color';ci.id='finColor';ci.value='#ff5c35';
+  ci.oninput=()=>{S.slots[S.sel].custom=ci.value;sync();render()};ci.onchange=commit;cl.append(ci);el.append(cl)}
 BGS.forEach((p,i)=>{const b=document.createElement('button');b.className='bgsw';b.style.background='linear-gradient(135deg,'+p[0]+','+p[1]+')';b.title='Backdrop '+(i+1);b.onclick=()=>{S.bg=i;S.a=p[0];S.b=p[1];S.tr=0;sync();commit()};$('#bgs').append(b)});
 LOOKS.forEach((lk,i)=>{const b=document.createElement('button');b.className='look';b.dataset.i=i;b.innerHTML='<div class="chip" style="background:linear-gradient(135deg,'+lk.bg[0]+','+lk.bg[1]+')"></div><span>'+lk.n+'</span>';b.onclick=()=>{
-  S.a=lk.bg[0];S.b=lk.bg[1];S.bg=-1;S.tr=0;S.shadow=lk.shadow;S.dark=lk.dark;S.slots.forEach(s=>{s.finish=nearestIn(finList(devOf(s)),FINISH[lk.finish][1]);s.live=lk.live});sync();commit();say('Look: '+lk.n);
+  S.a=lk.bg[0];S.b=lk.bg[1];S.bg=-1;S.tr=0;S.shadow=lk.shadow;S.dark=lk.dark;S.slots.forEach(s=>{s.custom=null;s.finish=nearestIn(finList(devOf(s)),FINISH[lk.finish][1]);s.live=lk.live});sync();commit();say('Look: '+lk.n);
 };$('#looks').append(b)});
 LIVE.forEach(([id,n,ico])=>{const b=document.createElement('button');b.className='live-btn';b.dataset.m=id;b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ico+'</svg><span>'+n+'</span>';b.onclick=()=>{S.slots[S.sel].live=id;sync();commit();say(n+' screen on device '+(S.sel+1))};$('#liveModes').append(b)});
 
@@ -1917,7 +1952,9 @@ function setLayout(n){
   S.n=n;S.sel=Math.min(S.sel,n-1);sync();commit();say(n+' device'+(n>1?'s':'')+' in scene — spaced apart');
 }
 function seg(el,labels,fn){el.innerHTML='';labels.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>fn(i);el.append(b)})}
-seg($('#rat'),RAT.map(r=>r[0]),i=>{S.ratio=i;sync();commit()});
+seg($('#rat'),RAT.map(r=>r[0]),i=>{S.ratio=i;S.target=null;sync();commit()});
+(function(){const el=$('#sizePreset');el.innerHTML='<option value="">Custom ratio · 1×–3×</option>'+SIZES.map((z,i)=>'<option value="'+i+'">'+z[0]+' — '+z[1]+'×'+z[2]+'</option>').join('');
+  el.onchange=()=>{const z=SIZES[el.value];S.target=z?[z[1],z[2]]:null;if(z){let bi=0,bd=1e9;const ar=z[1]/z[2];RAT.forEach((r,i)=>{const d=Math.abs(r[1]/r[2]-ar);if(d<bd){bd=d;bi=i}});S.ratio=bi}sync();commit();say(z?'Export size: '+z[0]+' · '+z[1]+'×'+z[2]:'Custom ratio')}})();
 seg($('#fmt'),['PNG','JPG','WebP'],i=>{S.fmt=['png','jpg','webp'][i];sync();commit()});
 seg($('#xs'),['1×','2×','3×'],i=>{S.k=i+1;sync();commit()});
 seg($('#vidRes'),['FHD','4K'],i=>{S.vid.res=i;sync()});
@@ -1958,7 +1995,7 @@ $('#tr').onclick=()=>{S.tr=S.tr?0:1;sync();commit()};
 $('#liveToggle').onclick=()=>{S.liveOn=!S.liveOn;$('#liveToggle').textContent=S.liveOn?'Pause motion':'Resume motion';say(S.liveOn?'Live screens running':'Live screens paused')};
 
 $('#devAll').onclick=()=>{const id=S.slots[S.sel].dev;S.slots.forEach(s=>setDev(s,id));sync();commit();say('Device applied to all '+S.n+' slots')};
-$('#finishAll').onclick=()=>{const hex=finOf(S.slots[S.sel])[1];S.slots.forEach(s=>s.finish=nearestIn(finList(devOf(s)),hex));sync();commit();say('Finish applied to all devices')};
+$('#finishAll').onclick=()=>{const src=S.slots[S.sel],hex=finOf(src)[1];S.slots.forEach(s=>{if(src.custom){s.custom=src.custom}else{s.custom=null;s.finish=nearestIn(finList(devOf(s)),hex)}});sync();commit();say('Finish applied to all devices')};
 
 /* ---- screenshots ---- */
 function renderShots(){
@@ -1991,6 +2028,7 @@ function removeShot(i){
   renderShots();sync();commit();say('Screenshot removed');
 }
 $('#addShot').onclick=()=>$('#file').click();
+$('#fabAdd').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{addImages(e.target.files);e.target.value=''};
 $('#shotAll').onclick=()=>{if(!S.images.length)return say('Add screenshots first');S.slots.forEach((s,i)=>s.img=i%S.images.length);sync();commit();say('Screenshots applied to all devices')};
 /* ---------- capture a website (or load an image link) and fit it to every device ---------- */
@@ -2087,11 +2125,11 @@ function startLive(raw){
   try{url=new URL(url).href}catch(e){return say('That doesn’t look like a valid URL')}
   if(S.d3.on){S.d3.on=0;sync()}
   LIVESITE.on=true;LIVESITE.slot=S.sel;LIVESITE.url=url;LIVESITE.dev='';
-  $('#abLive').hidden=false;placeLive();
+  $('#abLive').hidden=false;$('#abFreeze').hidden=false;placeLive();
   say('Live: '+new URL(url).host+' on device '+(S.sel+1)+' — drag the bezel to move, Esc to exit');
   clearTimeout(LIVESITE.hint);LIVESITE.hint=setTimeout(()=>{if(LIVESITE.on&&LIVESITE.url===url)say('Blank screen? '+new URL(url).host+' blocks embedding (X-Frame-Options / frame-ancestors). Use Capture, or allow this origin on your site.')},4500);
 }
-function stopLive(){LIVESITE.on=false;$('#liveLayer').innerHTML='';LIVESITE.el=null;$('#abLive').hidden=true;say('Live site closed')}
+function stopLive(quiet){LIVESITE.on=false;$('#liveLayer').innerHTML='';LIVESITE.el=null;$('#abLive').hidden=true;$('#abFreeze').hidden=true;if(!quiet)say('Live site closed')}
 function placeLive(){
   const layer=$('#liveLayer');
   if(!LIVESITE.on)return;
@@ -2121,7 +2159,62 @@ function placeLive(){
   /* same transform the canvas uses for this device: translate → rotate → scale (canvas px → CSS px) */
   LIVESITE.el.style.transform='scale('+F.s+') translate('+b.cx+'px,'+b.cy+'px) rotate('+b.a+'rad) scale('+b.f+')';
 }
-$('#abLive').onclick=stopLive;
+$('#abLive').onclick=()=>stopLive();
+/* ---- freeze: turn the live page into a normal screenshot on the device ---- */
+function isPrivateHost(h){
+  h=h.toLowerCase();
+  return h==='localhost'||h.endsWith('.localhost')||h.endsWith('.local')||h.endsWith('.internal')||h.endsWith('.test')||h==='[::1]'||
+    /^127\./.test(h)||/^10\./.test(h)||/^192\.168\./.test(h)||/^172\.(1[6-9]|2\d|3[01])\./.test(h)||/^0\.0\.0\.0$/.test(h);
+}
+const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+/* grab pixels of the iframe straight from this tab (works for localhost and anything the screenshot service can't reach) */
+async function captureTabRegion(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia)throw new Error('unsupported');
+  const body=$('#abBody'),fr=$('#liveLayer iframe'),keep={z:VIEW.z,x:VIEW.x,y:VIEW.y};
+  /* hide the side panels while grabbing so the page gets as many screen pixels as possible */
+  const wasFocus=document.body.classList.contains('focus');
+  if(!wasFocus){document.body.classList.add('focus');await nextFrame();setView(1,0,0);render()}
+  /* zoom the preview so the page fills as many pixels as possible */
+  const cr=cv.getBoundingClientRect(),r0=fr.getBoundingClientRect(),bb=body.getBoundingClientRect();
+  const a=(r0.left-cr.left)/VIEW.z,c=(r0.top-cr.top)/VIEW.z,bw=r0.width/VIEW.z,bh=r0.height/VIEW.z;
+  const z=Math.max(1,Math.min(8,Math.min((bb.width-8)/bw,(bb.height-8)/bh)));
+  const baseL=cr.left-VIEW.x,baseT=cr.top-VIEW.y;
+  setView(z,bb.left+bb.width/2-baseL-(a+bw/2)*z,bb.top+bb.height/2-baseT-(c+bh/2)*z);
+  const hw=[...document.querySelectorAll('#liveLayer .lv-hw')];hw.forEach(e=>e.style.visibility='hidden');
+  const toast=$('#toast'),tv=toast.style.visibility;toast.style.visibility='hidden';
+  const sel=ov.style.visibility;ov.style.visibility='hidden';
+  const rad=fr.style.borderRadius;fr.style.borderRadius='0';
+  let stream;
+  try{
+    stream=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:'browser'},audio:false,preferCurrentTab:true,selfBrowserSurface:'include'});
+    const vid=document.createElement('video');vid.muted=true;vid.srcObject=stream;await vid.play();
+    await new Promise(r=>setTimeout(r,450));await nextFrame();
+    const rr=fr.getBoundingClientRect(),k=vid.videoWidth/innerWidth;
+    const out=document.createElement('canvas');out.width=Math.round(rr.width*k);out.height=Math.round(rr.height*k);
+    out.getContext('2d').drawImage(vid,rr.left*k,rr.top*k,rr.width*k,rr.height*k,0,0,out.width,out.height);
+    return await new Promise((res,rej)=>out.toBlob(b=>b?res(b):rej(new Error('encode')),'image/png'));
+  }finally{
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+    fr.style.borderRadius=rad;hw.forEach(e=>e.style.visibility='');toast.style.visibility=tv;ov.style.visibility=sel;if(!wasFocus){document.body.classList.remove('focus');await nextFrame();render()}setView(keep.z,keep.x,keep.y);
+  }
+}
+async function freezeLive(){
+  if(!LIVESITE.on)return;
+  const btn=$('#abFreeze');btn.classList.add('busy');
+  const idx=LIVESITE.slot,sl=S.slots[idx],v=viewportOf(devOf(sl)),host=new URL(LIVESITE.url).hostname;
+  let blob=null,how='';
+  try{
+    if(!isPrivateHost(host)){say('Freezing '+host+'…');try{blob=await captureAt(LIVESITE.url,v.w,v.h);how='screenshot service'}catch(e){}}
+    if(!blob){say(isPrivateHost(host)?'Choose “This tab” and allow sharing to freeze a local page':'Service unavailable — capturing from this tab…');blob=await captureTabRegion();how='this tab'}
+    const o=await blobToImage(blob);
+    S.images.push({url:o.url,img:o.img,name:host+' · frozen'});
+    Object.assign(sl,{img:S.images.length-1,ix:0,iy:0,iscale:1});
+    stopLive(true);renderShots();sync();commit();say('Frozen onto device '+(idx+1)+' ('+how+')');
+  }catch(e){
+    say(e&&e.name==='NotAllowedError'?'Freeze cancelled — screen sharing was not allowed':e&&e.message==='unsupported'?'This browser can’t capture a tab. Use Capture for public sites.':'Couldn’t freeze that page. Try again or use Capture.');
+  }finally{btn.classList.remove('busy')}
+}
+$('#abFreeze').onclick=freezeLive;
 $('#shotUrlLive').onclick=()=>startLive($('#shotUrl').value);
 $('#shotKey').value=shotKey();
 $('#shotKey').onchange=e=>{try{const v=e.target.value.trim();v?localStorage.setItem('fk.mlkey',v):localStorage.removeItem('fk.mlkey')}catch(_){}SHOT_CACHE.clear();say(e.target.value.trim()?'API key saved in this browser':'API key removed')};
@@ -2164,7 +2257,7 @@ function placeNote(p){
   S.noteSel=S.notes.length-1;sync();commit();say('Annotation added');
 }
 $('#abBody').addEventListener('pointerdown',e=>{
-  if(e.target.tagName==='IFRAME')return;
+  if(e.target.tagName==='IFRAME'||e.target.closest('.fab'))return;
   if(e.button===1||(VIEW.z>1&&!S.imgTool&&hit(pt(e))<0)){e.preventDefault();VIEW.pan={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y,id:e.pointerId};$('#abBody').classList.add('panning');try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}return}
   const p=pt(e);pointers.set(e.pointerId,p);try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}
   if(S.imgTool){placeNote(p);return}
@@ -2234,6 +2327,20 @@ function syncSliders(){
    3D VIEW controls
    ========================================================================== */
 $('#d3Toggle').onclick=()=>{S.d3.on=S.d3.on?0:1;sync();say(S.d3.on?'3D mode on — drag to rotate':'3D mode off')};
+const SCENES3D={
+  hero:(i,n,c)=>({x:c*.38,y:Math.abs(c)*.03,s:1.02-Math.abs(c)*.22,ry:-24-c*14,rx:8,rz:-c*3,r:0}),
+  side:(i,n,c)=>({x:c*.32,y:0,s:n>1?.8:1,ry:-58,rx:0,rz:0,r:0}),
+  stack:(i,n,c)=>({x:c*.13,y:c*.07,s:.92,ry:-32,rx:12,rz:-6,r:0}),
+  duo:(i,n,c)=>({x:c*.32,y:0,s:.9,ry:i%2?160:-22,rx:6,rz:0,r:0}),
+  flat:(i,n,c)=>({x:c*.3,y:c*.02,s:.85,ry:0,rx:-60,rz:c*14,r:0}),
+  iso:(i,n,c)=>({x:c*.3,y:-Math.abs(c)*.02,s:.95,ry:-35,rx:-22,rz:8,r:0})
+};
+function applyScene3d(name){
+  const n=S.slots.length;S.d3.on=1;
+  S.slots.forEach((sl,i)=>{const c=i-(n-1)/2;Object.assign(sl,SCENES3D[name](i,n,c))});
+  S.land=0;sync();commit();say('3D scene: '+name)
+}
+$$('#d3Scenes button').forEach(b=>b.onclick=()=>applyScene3d(b.dataset.sc));
 $$('#d3Presets button').forEach(b=>b.onclick=()=>{
   const [y,p,r]=b.dataset.a.split(',').map(Number);
   Object.assign(S.slots[S.sel],{ry:y,rx:p,rz:r});sync();commit();say('Angle preset applied');
@@ -2348,7 +2455,7 @@ function curImg(){const sl=S.slots[S.sel];return sl&&sl.img!=null?S.images[sl.im
 function autoStyle(){
   const im=curImg();if(!im)return say('Add a screenshot to the selected device first');
   const s=sampleImage(im.img);S.a=s.dark;S.b=s.light;S.bg=-1;S.tr=0;
-  S.slots[S.sel].finish=nearestIn(finList(devOf(S.slots[S.sel])),s.accent);sync();commit();say('Auto-styled from screenshot colours');
+  S.slots[S.sel].custom=null;S.slots[S.sel].finish=nearestIn(finList(devOf(S.slots[S.sel])),s.accent);sync();commit();say('Auto-styled from screenshot colours');
 }
 function autoCompose(){
   const im=curImg();if(!im)return say('Add a screenshot first');
@@ -2409,7 +2516,7 @@ const TEMPLATES=[
 /* scene state / save / load / share */
 function sceneState(){return JSON.stringify({
   slots:S.slots.map(s=>({...s})),n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,land:S.land,shadow:S.shadow,
-  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,notes:S.notes,keys:S.keys,captions:S.captions,d3:{...S.d3},
+  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,target:S.target||null,notes:S.notes,keys:S.keys,captions:S.captions,d3:{...S.d3},
   vid:{...S.vid,active:0,playing:0,progress:0,playhead:0,t0:0,audio:null},
   bgMedia:{...S.bgMedia,url:S.bgMedia.url},images:S.images.map(i=>({url:i.url,name:i.name}))
 })}
@@ -2519,14 +2626,17 @@ function sync(){
   const P=(el,on)=>el.setAttribute('aria-pressed',on?'true':'false');
   $$('#devs .dcard').forEach(b=>P(b,DEV[+b.dataset.i].id===S.slots[S.sel].dev));
   buildFinishes();const fl=finList(devOf(S.slots[S.sel])),fi=((S.slots[S.sel].finish||0)%fl.length+fl.length)%fl.length;
-  $$('#finishes .finish').forEach((b,i)=>P(b,i===fi));
-  $('#finishName').textContent=fl[fi][0];
+  const cu=S.slots[S.sel].custom;
+  $$('#finishes .finish').forEach((b,i)=>{if(b.classList.contains('cust')){P(b,!!cu);b.classList.toggle('has',!!cu);if(cu){b.style.setProperty('--c',cu);b.querySelector('input').value=cu}}else P(b,!cu&&i===fi)});
+  $('#finishName').textContent=cu?'Custom '+cu.toUpperCase():fl[fi][0];
   $$('#bgs .bgsw').forEach((b,i)=>P(b,i===S.bg&&!S.tr));
   $$('#looks .look').forEach(b=>P(b,+b.dataset.i===S.bg));
   $$('#lay button').forEach((b,i)=>P(b,i+1===S.n));
   $$('#rat button').forEach((b,i)=>P(b,i===S.ratio));
   $$('#fmt button').forEach((b,i)=>P(b,['png','jpg','webp'][i]===S.fmt));
-  $$('#xs button').forEach((b,i)=>P(b,i+1===S.k));
+  $$('#xs button').forEach((b,i)=>{P(b,!S.target&&i+1===S.k);b.disabled=!!S.target});
+  $$('#rat button').forEach((b,i)=>P(b,!S.target&&i===S.ratio));
+  $('#sizePreset').value=S.target?String(SIZES.findIndex(z=>z[1]===S.target[0]&&z[2]===S.target[1])):'';
   $$('#vidRes button').forEach((b,i)=>P(b,i===S.vid.res));
   $$('#vidOrient button').forEach((b,i)=>P(b,i===S.vid.orient));
   $$('#vidDur button').forEach((b,i)=>P(b,VDUR[i]===S.vid.dur));
@@ -2568,9 +2678,9 @@ function sync(){
 }
 
 function blobOf(){return new Promise(r=>{
-  const[w,h]=dim(),c=document.createElement('canvas');c.width=w*S.k;c.height=h*S.k;const x=c.getContext('2d');
+  const[w,h]=dim(),c=document.createElement('canvas'),K=S.target?S.target[0]/w:S.k;c.width=S.target?S.target[0]:w*S.k;c.height=S.target?S.target[1]:h*S.k;const x=c.getContext('2d');
   if(S.fmt==='jpg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}
-  drawScene(x,w,h,S.k,performance.now());
+  drawScene(x,w,h,K,performance.now());
   c.toBlob(r,{png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[S.fmt],.95);
 })}
 async function exportImg(){
@@ -2945,17 +3055,7 @@ addEventListener('keydown',e=>{
   else if(k.startsWith('arrow')){e.preventDefault();const sl=S.slots[S.sel],d=k==='arrowleft'?-.01:k==='arrowright'?.01:0,v=k==='arrowup'?-.01:k==='arrowdown'?.01:0;sl.x=Math.max(-.6,Math.min(.6,sl.x+d));sl.y=Math.max(-.6,Math.min(.6,sl.y+v));render();clearTimeout(window._nk);window._nk=setTimeout(commit,250)}
 });
 
-/* PWA manifest / install / share target */
-(function(){
-  try{
-    const manifest={name:'ស៊ុម Suum',short_name:'Suum',lang:'en',description:'Device mockups and video scenes',
-      start_url:location.href.split('#')[0],display:'standalone',background_color:'#0B0B0D',theme_color:'#FF5C35',
-      icons:[{src:new URL('icon-192.png',location.href).href,sizes:'192x192',type:'image/png'},{src:new URL('icon-512.png',location.href).href,sizes:'512x512',type:'image/png',purpose:'any'},{src:new URL('favicon.svg',location.href).href,sizes:'any',type:'image/svg+xml'}],
-      share_target:{action:location.href.split('#')[0].split('?')[0],method:'GET',enctype:'application/x-www-form-urlencoded',params:{title:'title',text:'text',url:'url'}}};
-    const url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
-    $('#manifestLink').href=url;
-  }catch(_){}
-})();
+/* PWA install / offline / share target (manifest.webmanifest + sw.js) */
 let deferredPrompt=null;
 addEventListener('beforeinstallprompt',e=>{deferredPrompt=e});
 $('#installApp').onclick=async()=>{
@@ -2963,10 +3063,152 @@ $('#installApp').onclick=async()=>{
   say('Use your browser menu → Install app / Add to Home screen');
 };
 
+/* ==========================================================================
+   LANGUAGE — English / ខ្មែរ. Visible labels are swapped in place from a dictionary,
+   so English stays the source of truth and switching back restores it exactly.
+   ========================================================================== */
+const KM={
+ /* header + panels */
+ 'Untitled scene':'ឈុតគ្មានឈ្មោះ','Export':'នាំចេញ','Devices':'ឧបករណ៍','Layers':'ស្រទាប់','Screens':'អេក្រង់',
+ 'Style':'រចនាប័ទ្ម','Smart':'ឆ្លាតវៃ','Canvas':'ផ្ទាំង','3D':'3D','Video':'វីដេអូ',
+ 'Undo (Ctrl+Z)':'មិនធ្វើវិញ (Ctrl+Z)','Undo':'មិនធ្វើវិញ','Redo (Ctrl+Shift+Z)':'ធ្វើវិញ (Ctrl+Shift+Z)','Redo':'ធ្វើវិញ',
+ 'Focus preview (F)':'មើលពេញអេក្រង់ (F)','Focus preview':'មើលពេញអេក្រង់','Switch theme':'ប្តូរពណ៌ផ្ទៃកម្មវិធី',
+ 'Search the library…':'ស្វែងរកក្នុងបណ្ណាល័យ…','Search devices':'ស្វែងរកឧបករណ៍','Use for whole scene':'ប្រើសម្រាប់ទាំងឈុត',
+ 'Duplicate':'ចម្លង','Delete layer':'លុបស្រទាប់','Screenshots':'រូបថតអេក្រង់',
+ 'Add screenshots (multiple)':'បន្ថែមរូបថតអេក្រង់ (ច្រើន)','Website or image URL':'គេហទំព័រ ឬ URL រូបភាព',
+ 'Capture':'ថត','Live':'ផ្ទាល់','Screenshot API key (optional)':'សោ API សម្រាប់ថតអេក្រង់ (ជម្រើស)',
+ 'Saved only in this browser.':'រក្សាទុកតែក្នុងកម្មវិធីរុករកនេះប៉ុណ្ណោះ។',
+ 'Paste image from clipboard':'បិទភ្ជាប់រូបភាពពីក្ដារតម្បៀតខ្ទាស់','Apply to all devices':'អនុវត្តទៅគ្រប់ឧបករណ៍','Clear all':'សម្អាតទាំងអស់',
+ 'Drop screenshots here':'ទម្លាក់រូបថតអេក្រង់នៅទីនេះ','Add many at once · tap a device first to target it':'បន្ថែមច្រើនក្នុងពេលតែមួយ · ចុចលើឧបករណ៍ជាមុនដើម្បីជ្រើសរើស',
+ 'tap':'ចុច','select device':'ជ្រើសឧបករណ៍','drag':'អូស','move':'ផ្លាស់ទី','pinch':'ច្បិច','scale':'ពង្រីក/បង្រួម','twist':'បង្វិល','rotate':'បង្វិល',
+ '❄ Freeze':'❄ ក្លាយជារូបថត','● LIVE ✕':'● ផ្ទាល់ ✕',
+ 'Library sections':'ផ្នែកបណ្ណាល័យ','Inspector sections':'ផ្នែកកែសម្រួល','Panels':'ផ្ទាំង',
+ /* style tab */
+ 'Looks':'រូបរាង','Composition':'ការរៀបចំ','Canvas ratio':'សមាមាត្រផ្ទាំង','Live screen':'អេក្រង់ផ្ទាល់',
+ 'Pause motion':'ផ្អាកចលនា','Resume motion':'បន្តចលនា','Flip every device':'បង្វិលគ្រប់ឧបករណ៍','Fit, don’t crop':'ដាក់ឲ្យល្មម មិនកាត់',
+ 'Dark chrome':'ស៊ុមងងឹត','Device finish':'ពណ៌ឧបករណ៍','Apply finish to all':'អនុវត្តពណ៌ទៅទាំងអស់','Custom colour':'ពណ៌ផ្ទាល់ខ្លួន',
+ 'Backdrop':'ផ្ទៃខាងក្រោយ','Transparent':'ថ្លា','Transform':'ការកែប្រែ','Scale':'ទំហំ','Rotate':'បង្វិល','Shadow':'ស្រមោល',
+ 'Clock':'នាឡិកា','Aurora':'អូរ៉ូរ៉ា','Music':'តន្ត្រី','Weather':'អាកាសធាតុ','Charts':'តារាង','Blank':'ទទេ',
+ /* smart */
+ 'Smart tools':'ឧបករណ៍ឆ្លាតវៃ','Auto-style':'រចនាស្វ័យប្រវត្តិ','Auto-compose':'រៀបចំស្វ័យប្រវត្តិ','Cut out':'កាត់ផ្ទៃខាងក្រោយ',
+ 'Upscale 2×':'ពង្រីក ២×','Caption':'ចំណងជើងរង','Do it all':'ធ្វើទាំងអស់','Scene templates':'គំរូឈុត','Saved scenes':'ឈុតដែលបានរក្សាទុក',
+ 'Save current':'រក្សាទុកឈុតបច្ចុប្បន្ន','Copy share link':'ចម្លងតំណចែករំលែក','ZIP all images':'ZIP រូបភាពទាំងអស់',
+ 'Install app / share into Suum':'ដំឡើងកម្មវិធី / ចែករំលែកចូល Suum','Brand kit':'ឈុតម៉ាក','Save':'រក្សាទុក','Logo / watermark':'ឡូហ្គោ / ស្លាកទឹក',
+ /* canvas */
+ 'Canvas & annotations':'ផ្ទាំង និងចំណាំ','Backdrop media':'មេឌៀផ្ទៃខាងក្រោយ','Add backdrop image / video':'បន្ថែមរូបភាព / វីដេអូផ្ទៃខាងក្រោយ',
+ 'Blur':'ព្រិល','Perspective':'ទស្សនវិស័យ','Reflection':'ការឆ្លុះ','Custom device frame':'ស៊ុមឧបករណ៍ផ្ទាល់ខ្លួន','Upload frame PNG':'ផ្ទុកឡើងស៊ុម PNG',
+ 'Frame size':'ទំហំស៊ុម','Screen crop / pan':'កាត់ / រុញអេក្រង់','Zoom':'ពង្រីក','Offset X':'ទីតាំង X','Offset Y':'ទីតាំង Y','Annotations':'ចំណាំ','Delete selected':'លុបអ្វីដែលបានជ្រើស',
+ /* 3D */
+ '3D View':'ទិដ្ឋភាព 3D','Enable 3D mode':'បើកមុខងារ 3D','Angle presets':'មុំដែលកំណត់ទុក','Front':'ខាងមុខ','Left ¾':'ឆ្វេង ¾','Right ¾':'ស្តាំ ¾',
+ 'Top down':'ពីលើចុះក្រោម','Back':'ខាងក្រោយ','Selected device':'ឧបករណ៍ដែលបានជ្រើស','Yaw / turn':'បង្វិលផ្ដេក','Pitch / tilt':'ផ្អៀងឡើងចុះ',
+ 'Roll / spin':'វិល','Apply angles to all':'អនុវត្តមុំទៅទាំងអស់','Reset angles':'កំណត់មុំឡើងវិញ','Scene presets':'ឈុត 3D ដែលកំណត់ទុក',
+ 'all devices':'គ្រប់ឧបករណ៍','Hero':'ឈុតសំខាន់','Side by side':'ជាប់គ្នា','Stack':'ជង់','Front & back':'មុខ និងក្រោយ','Flat lay':'ដាក់រាបស្មើ','Isometric':'អ៊ីសូមេទ្រិច',
+ /* export */
+ 'Export image':'នាំចេញរូបភាព','Copy':'ចម្លង','Size preset':'ទំហំដែលកំណត់ទុក','Custom ratio · 1×–3×':'សមាមាត្រផ្ទាល់ខ្លួន · 1×–3×',
+ 'Export size preset':'ទំហំនាំចេញដែលកំណត់ទុក',
+ /* video */
+ 'Video Studio':'ស្ទូឌីយោវីដេអូ','Camera motion':'ចលនាកាមេរ៉ា','Easing':'ភាពរលូន','Intensity':'កម្រិត','Staggered entrance':'ចូលជាលំដាប់',
+ 'Background parallax':'ប៉ារ៉ាឡាក់ស៊ីផ្ទៃខាងក្រោយ','Seamless loop':'រង្វិលជុំគ្មានថ្នេរ','Text overlay':'អក្សរគ្របលើ','Add':'បន្ថែម','Title':'ចំណងជើង',
+ 'Subtitle':'ចំណងជើងរង','Text size':'ទំហំអក្សរ','Watermark':'ស្លាកទឹក','Soundtrack':'តន្ត្រីផ្ទៃខាងក្រោយ','Add music':'បន្ថែមតន្ត្រី','Play':'ចាក់','Remove':'ដកចេញ',
+ 'Keyframe timeline':'ខ្សែពេលវេលា Keyframe','Add at playhead':'បន្ថែមត្រង់ playhead','Text animation':'ចលនាអក្សរ','Import .srt subtitles':'នាំចូលចំណងជើងរង .srt',
+ 'Voiceover & loops':'សំឡេងអធិប្បាយ និងរង្វិលជុំ','Record voiceover':'ថតសំឡេងអធិប្បាយ','Use as soundtrack':'ប្រើជាតន្ត្រីផ្ទៃខាងក្រោយ',
+ 'GIF-style loop':'រង្វិលជុំបែប GIF','WebP sprite sheet':'សន្លឹក sprite WebP','Social presets':'ទំហំបណ្ដាញសង្គម','Render queue':'ជួរដំណើរការ',
+ 'Add current':'បន្ថែមបច្ចុប្បន្ន','Render all queued':'ដំណើរការទាំងអស់ក្នុងជួរ','Output':'លទ្ធផល','Resolution':'គុណភាពបង្ហាញ','Orientation':'ទិសដៅ',
+ 'Duration':'រយៈពេល','Frame rate':'អត្រាស៊ុម','Codec':'កូដេក','Bitrate':'ប៊ីតរេត','Record video':'ថតវីដេអូ','Landscape':'ផ្ដេក','Portrait':'បញ្ឈរ',
+ 'Cancel':'បោះបង់','Recording your scene':'កំពុងថតឈុតរបស់អ្នក',
+ /* messages */
+ 'Undone':'បានមិនធ្វើវិញ','Redone':'បានធ្វើវិញ','Screenshot removed':'បានលុបរូបថតអេក្រង់','All screenshots cleared':'បានសម្អាតរូបថតអេក្រង់ទាំងអស់',
+ 'Screenshots applied to all devices':'បានដាក់រូបថតអេក្រង់លើគ្រប់ឧបករណ៍','Add screenshots first':'សូមបន្ថែមរូបថតអេក្រង់ជាមុន',
+ 'ZIP exported':'បាននាំចេញ ZIP','Annotation added':'បានបន្ថែមចំណាំ','Angle preset applied':'បានអនុវត្តមុំ','Angles applied to all devices':'បានអនុវត្តមុំទៅគ្រប់ឧបករណ៍',
+ 'All angles reset':'បានកំណត់មុំទាំងអស់ឡើងវិញ','Custom ratio':'សមាមាត្រផ្ទាល់ខ្លួន','Live site closed':'បានបិទគេហទំព័រផ្ទាល់','Editor restored':'បានត្រឡប់ទៅកម្មវិធីកែសម្រួល',
+ 'Full-screen preview — press F or Esc to exit':'មើលពេញអេក្រង់ — ចុច F ឬ Esc ដើម្បីចេញ','Rendering…':'កំពុងបង្កើត…',
+ 'Ready — tap a device to select it, then drop screenshots or pick a live screen.':'រួចរាល់ — ចុចលើឧបករណ៍ដើម្បីជ្រើស បន្ទាប់មកទម្លាក់រូបថតអេក្រង់ ឬជ្រើសអេក្រង់ផ្ទាល់។',
+ 'Device applied':'បានអនុវត្តឧបករណ៍','layout':'ប្លង់','nudge':'រុញ','focus':'មើលពេញ','undo':'មិនធ្វើវិញ','Finish applied to all devices':'បានអនុវត្តពណ៌ទៅគ្រប់ឧបករណ៍','Auto-styled from screenshot colours':'បានរចនាស្វ័យប្រវត្តិតាមពណ៌រូបថត'
+};
+const KM_GROUP={'Phones':'ទូរស័ព្ទ','Foldables':'ទូរស័ព្ទបត់','Tablets':'ថេប្លេត','Computers':'កុំព្យូទ័រ','Wearables':'ឧបករណ៍ពាក់','Web':'គេហទំព័រ'};
+const KM_RULES=[
+ [/^(Phones|Foldables|Tablets|Computers|Wearables|Web)\s+·\s+(\d+)$/i,(m)=>(KM_GROUP[m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()]||m[1])+' · '+m[2]],
+ [/^(.+?)\s+·\s+device (\d+)$/i,(m)=>m[1]+' · ឧបករណ៍ '+m[2]],
+ [/^Search (\d+) devices…$/,(m)=>'ស្វែងរក '+m[1]+' ឧបករណ៍…'],
+ [/^Showing on device (\d+)$/,(m)=>'កំពុងបង្ហាញលើឧបករណ៍ '+m[1]],
+ [/^Screen on device (\d+)$/,(m)=>'អេក្រង់លើឧបករណ៍ '+m[1]],
+ [/^· device (\d+)$/i,(m)=>'· ឧបករណ៍ '+m[1]],
+ [/^Look: (.+)$/,(m)=>'រូបរាង៖ '+m[1]],
+ [/^Finish —$/,()=>'ពណ៌ —'],
+ [/^Custom (#[0-9A-F]{6})$/i,(m)=>'ពណ៌ផ្ទាល់ខ្លួន '+m[1]],
+ [/^(\d+) screenshots? added.*$/,(m)=>'បានបន្ថែមរូបថតអេក្រង់ '+m[1]],
+ [/^Captured (.+) on device (\d+)$/,(m)=>'បានថត '+m[1]+' លើឧបករណ៍ '+m[2]],
+ [/^Frozen onto device (\d+).*$/,(m)=>'បានក្លាយជារូបថតលើឧបករណ៍ '+m[1]],
+ [/^Export size: (.+)$/,(m)=>'ទំហំនាំចេញ៖ '+m[1]],
+ [/^Exported (.+)$/,(m)=>'បាននាំចេញ '+m[1]],
+ [/^3D scene: (.+)$/,(m)=>'ឈុត 3D៖ '+m[1]]
+];
+let LANG='en';try{LANG=localStorage.getItem('fk-lang')||((navigator.language||'').toLowerCase().startsWith('km')?'km':'en')}catch(_){}
+function trKm(text){
+  const t=text.trim();if(!t)return null;
+  if(KM[t])return text.replace(t,KM[t]);
+  for(const [re,fn] of KM_RULES){const m=t.match(re);if(m)return text.replace(t,fn(m))}
+  return null;
+}
+const I18N={orig:new WeakMap(),attrs:['title','placeholder','aria-label'],busy:false,obs:null};
+function i18nNode(root){
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;return p&&/^(SCRIPT|STYLE|TEXTAREA|OPTION)$/.test(p.nodeName)||p&&p.closest&&p.closest('[data-notr],svg')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+  let n;while(n=w.nextNode()){
+    if(LANG==='km'){const o=I18N.orig.has(n)?I18N.orig.get(n):n.nodeValue,k=trKm(o);I18N.orig.set(n,o);if(k!==null&&k!==n.nodeValue)n.nodeValue=k;else if(k===null)n.nodeValue=o}
+    else if(I18N.orig.has(n)){n.nodeValue=I18N.orig.get(n);I18N.orig.delete(n)}
+  }
+  const els=root.nodeType===1?[root,...root.querySelectorAll('[title],[placeholder],[aria-label]')]:[];
+  els.forEach(el=>I18N.attrs.forEach(a=>{
+    if(!el.hasAttribute(a))return;const key='data-en-'+a,cur=el.getAttribute(a);
+    if(LANG==='km'){const o=el.hasAttribute(key)?el.getAttribute(key):cur,k=trKm(o);el.setAttribute(key,o);el.setAttribute(a,k!==null?k:o)}
+    else if(el.hasAttribute(key)){el.setAttribute(a,el.getAttribute(key));el.removeAttribute(key)}
+  }));
+  /* <option> labels + select placeholders */
+  root.nodeType===1&&(root.nodeName==='OPTION'?[root]:[...root.querySelectorAll('option')]).forEach(op=>{
+    if(LANG==='km'){const o=op.dataset.en!==undefined?op.dataset.en:op.textContent,k=trKm(o);op.dataset.en=o;if(k!==null)op.textContent=k}
+    else if(op.dataset.en!==undefined){op.textContent=op.dataset.en;delete op.dataset.en}
+  });
+}
+function applyLang(){
+  document.documentElement.lang=LANG==='km'?'km':'en';
+  I18N.busy=true;if(I18N.obs)I18N.obs.disconnect();
+  i18nNode(document.body);
+  const b=$('#lang');if(b){b.textContent=LANG==='km'?'EN':'ខ្មែរ';b.title=LANG==='km'?'Switch to English':'ប្តូរទៅភាសាខ្មែរ'}
+  watchLang();I18N.busy=false;
+}
+function watchLang(){
+  if(!I18N.obs){
+    I18N.obs=new MutationObserver(recs=>{
+      if(LANG!=='km')return;
+      I18N.obs.disconnect();
+      recs.forEach(r=>{
+        if(r.type==='characterData'){I18N.orig.set(r.target,r.target.nodeValue);const k=trKm(r.target.nodeValue);if(k!==null)r.target.nodeValue=k}
+        else if(r.type==='attributes'){const el=r.target,a=r.attributeName,k=trKm(el.getAttribute(a)||'');if(k!==null){el.setAttribute('data-en-'+a,el.getAttribute(a));el.setAttribute(a,k)}}
+        else r.addedNodes.forEach(nd=>{if(nd.nodeType===1)i18nNode(nd);else if(nd.nodeType===3&&nd.parentNode)i18nNode(nd.parentNode)});
+      });
+      watchLang();
+    });
+  }
+  I18N.obs.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:I18N.attrs});
+}
+$('#lang').onclick=()=>{LANG=LANG==='km'?'en':'km';try{localStorage.setItem('fk-lang',LANG)}catch(_){}applyLang();say(LANG==='km'?'ប្តូរទៅភាសាខ្មែរ':'Switched to English')};
+
+
 /* Boot */
-applyTh();renderBrand();renderScenes();sync();commit();updateTabArrows();requestAnimationFrame(tick);
+applyTh();renderBrand();renderScenes();sync();commit();updateTabArrows();requestAnimationFrame(tick);applyLang();
 try{const q=new URLSearchParams(location.search),shared=[q.get('url'),q.get('text'),q.get('title')].join(' ').match(/https?:\/\/\S+/);
-  if(shared){$('#shotUrl').value=shared[0];say('Shared link ready — press Capture or Live');history.replaceState(null,'',location.pathname+location.hash)}}catch(_){}
+  if(shared){$('#shotUrl').value=shared[0];say('Shared link ready — press Capture or Live')}
+  const nShared=+q.get('shared')||0;
+  if(nShared&&'caches' in window){
+    caches.open('suum-share').then(async c=>{
+      const files=[];
+      for(let i=0;i<nShared;i++){const r=await c.match('shared/'+i);if(!r)continue;const b=await r.blob();files.push(new File([b],decodeURIComponent(r.headers.get('x-name')||'shared.png'),{type:b.type}));await c.delete('shared/'+i)}
+      if(files.length){addImages(files);say(files.length+' shared image'+(files.length>1?'s':'')+' added')}
+    }).catch(()=>{});
+  }
+  if(shared||nShared)history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
+/* offline support: cache the app shell (needs http/https, not file://) */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 try{const hm=location.hash.match(/s=(.+)/);if(hm)restoreState(decodeURIComponent(escape(atob(hm[1]))))}catch(_){}
 </script>
 </body>
