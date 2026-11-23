@@ -44,7 +44,7 @@ h1,h2,h3,.display{font-family:"Space Grotesk","Inter",sans-serif;margin:0}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
 ::selection{background:var(--accent);color:#fff}
-.app{display:grid;grid-template-rows:var(--topbar) 1fr var(--statusbar);height:100dvh}
+.app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:var(--topbar) 1fr var(--statusbar);height:100dvh}
 
 /* ---------- Topbar ---------- */
 .topbar{
@@ -197,6 +197,9 @@ section[data-group]{scroll-margin-top:10px}
 
 /* Swatches */
 .swatches{display:flex;flex-wrap:wrap;gap:9px}
+.finish.cust{position:relative;overflow:hidden;cursor:pointer;background:conic-gradient(#ff5c35,#ffd23f,#3fd07a,#3fb8ff,#8a5cff,#ff5c9a,#ff5c35)}
+.finish.cust.has{background:var(--c)}
+.finish.cust input{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0;cursor:pointer;border:0;padding:0}
 .finish{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.07);
   background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.55),transparent 46%),linear-gradient(150deg,rgba(255,255,255,.16),transparent 50%),var(--c);
   box-shadow:inset 0 -7px 12px rgba(0,0,0,.4),0 4px 9px rgba(0,0,0,.28);position:relative;transition:.15s;padding:0}
@@ -331,6 +334,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 #liveLayer .lv-dev{position:absolute;left:0;top:0;transform-origin:0 0}
 #liveLayer iframe{position:absolute;border:0;background:#fff;pointer-events:auto;overflow:hidden}
 #liveLayer .lv-hw{position:absolute;background:#000;pointer-events:none}
+.fab{display:none;position:absolute;right:10px;bottom:10px;z-index:6;width:46px;height:46px;border-radius:50%;border:0;color:#fff;place-items:center;background:linear-gradient(145deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35)}
+.fab svg{width:22px;height:22px}.fab:active{transform:scale(.94)}
 .ab-pill.zoom{cursor:pointer}.ab-pill.zoom:hover{color:var(--txt);border-color:var(--line2)}
 .ab-pill.live{color:#fff;background:#E5484D;border-color:#E5484D;cursor:pointer}
 
@@ -395,6 +400,7 @@ body.focus .stage-hint{opacity:.6}
   .stage{order:0;flex:none;position:sticky;top:0;z-index:15;min-height:0;padding:8px 12px;gap:0;overflow:hidden;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,.7)}
   .stage::before{display:none}
   .stage .dropzone,.stage .stage-hint{display:none}
+  .fab{display:grid}
   .artboard{max-width:min(100%,640px);margin:0 auto}
   .ab-bar{height:30px;padding:0 11px}
   .ab-body{padding:6px}
@@ -518,6 +524,7 @@ body.focus .stage-hint{opacity:.6}
           <canvas id="c" role="img" aria-label="Scene preview"></canvas>
           <canvas id="ov" aria-hidden="true"></canvas>
           <div id="liveLayer"></div>
+          <button class="fab" id="fabAdd" type="button" aria-label="Add screenshots" title="Add screenshots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
       </div>
       <div class="dropzone" id="drop" tabindex="0" role="button" aria-label="Add screenshots">
@@ -652,6 +659,16 @@ body.focus .stage-hint{opacity:.6}
           <button class="tile" data-a="180,0,0">Back</button>
         </div>
 
+        <div class="vidlabels" style="margin-top:14px">Scene presets <span style="opacity:.6">· all devices</span></div>
+        <div class="grid3" id="d3Scenes">
+          <button class="tile" data-sc="hero">Hero</button>
+          <button class="tile" data-sc="side">Side by side</button>
+          <button class="tile" data-sc="stack">Stack</button>
+          <button class="tile" data-sc="duo">Front &amp; back</button>
+          <button class="tile" data-sc="flat">Flat lay</button>
+          <button class="tile" data-sc="iso">Isometric</button>
+        </div>
+
         <div class="vidlabels" style="margin-top:14px">Selected device</div>
         <div class="slider-row"><div class="slider-top"><label for="d3Yaw">Yaw / turn</label><output id="d3YawVal">0°</output></div><input type="range" id="d3Yaw" min="-180" max="180" value="0"></div>
         <div class="slider-row"><div class="slider-top"><label for="d3Pitch">Pitch / tilt</label><output id="d3PitchVal">0°</output></div><input type="range" id="d3Pitch" min="-90" max="90" value="0"></div>
@@ -663,6 +680,8 @@ body.focus .stage-hint{opacity:.6}
 
       <section data-group="export">
         <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Export</div></div>
+        <div class="vidlabels">Size preset</div>
+        <select class="vinput" id="sizePreset" aria-label="Export size preset"></select>
         <div class="seg" id="fmt"></div>
         <div class="seg" id="xs" style="margin-top:7px"></div>
         <div class="export-actions">
@@ -911,7 +930,7 @@ const DEVFIN={i16p:'ip16pro',i16pm:'ip16pro',i15:'ip15',se:'ipse',s24u:'s24u',s2
  tabs12:'tab12',mbp14m6:'mbp',mbp16m6:'mbp',mbaM5:'mba',imacM6:'imac',w12:'w12',wu4:'wultra',wse3:'wse',gw9:'gw',pw5:'pw'};
 const devOf=sl=>DEV.find(z=>z.id===sl.dev)||DEV[0];
 const finList=d=>FINS[DEVFIN[d.id]]||FINS.web;
-const finOf=sl=>{const L=finList(devOf(sl));return L[((sl.finish||0)%L.length+L.length)%L.length]};
+const finOf=sl=>{if(sl.custom)return['Custom',sl.custom];const L=finList(devOf(sl));return L[((sl.finish||0)%L.length+L.length)%L.length]};
 function nearestIn(L,hex){
   const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;let best=0,bd=1e9;
   L.forEach((f,i)=>{const v=parseInt(f[1].slice(1),16),dr=(v>>16)-r,dg=((v>>8)&255)-g,db=(v&255)-b,d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=i}});
@@ -948,7 +967,7 @@ const LIVE=[
 /* ==========================================================================
    STATE
    ========================================================================== */
-const slot=(dev='i16p')=>({dev,finish:0,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
+const slot=(dev='i16p')=>({dev,finish:0,custom:null,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
 function preset(n){
   const sets={
     1:[slot('i16p')],
@@ -982,7 +1001,11 @@ const BITRATE=[4000000,10000000,20000000,40000000];
 const VRES=[[1920,1080],[3840,2160]], VFPS=[30,60], VDUR=[3,5,10];
 
 const cv=$('#c'), cx=cv.getContext('2d'), ov=$('#ov'), ox=ov.getContext('2d');
-const dim=()=>{const[,w,h]=RAT[S.ratio],m=1600,q=Math.max(w,h);return[Math.round(m*w/q),Math.round(m*h/q)]};
+const SIZES=[
+ ['App Store · iPhone 6.9″',1320,2868],['App Store · iPhone 6.5″',1284,2778],['App Store · iPad 13″',2064,2752],
+ ['Google Play · phone',1080,1920],['Product Hunt gallery',1270,760],['X / Twitter post',1600,900],
+ ['Instagram post 4:5',1080,1350],['Instagram story 9:16',1080,1920],['LinkedIn post',1200,627],['Open Graph / link preview',1200,630],['YouTube thumbnail',1280,720]];
+const dim=()=>{const[,w,h]=S.target?[0,S.target[0],S.target[1]]:RAT[S.ratio],m=1600,q=Math.max(w,h);return[Math.round(m*w/q),Math.round(m*h/q)]};
 
 /* ==========================================================================
    DRAWING ENGINE
@@ -1843,14 +1866,14 @@ function render(){
   const d=DEV.find(z=>z.id===S.slots[S.sel].dev)||DEV[0];
   $('#abTitle').textContent=d.n+'  ·  device '+(S.sel+1);
   $('#abRatio').textContent=RAT[S.ratio][0];
-  $('#abRes').textContent=(w*S.k)+' × '+(h*S.k);
+  $('#abRes').textContent=S.target?S.target[0]+' × '+S.target[1]:(w*S.k)+' × '+(h*S.k);
   placeLive();
 }
 function tick(t){requestAnimationFrame(tick);if(!S.liveOn)return;if(t-lastFrame<33)return;lastFrame=t;render()}
 function say(msg){$('#status').textContent=msg;const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2400)}
 
 let hist=[],hi=-1;
-function snap(){return JSON.stringify({slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
+function snap(){return JSON.stringify({target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
 function commit(){hist=hist.slice(0,hi+1);hist.push(snap());hi=hist.length-1;histUI()}
 function restore(str){const o=JSON.parse(str);Object.assign(S,o);sync();render()}
 function undo(){if(hi>0){hi--;restore(hist[hi]);say('Undone')}}
@@ -1898,10 +1921,13 @@ function glyph(d){const k=d.id==='zf6o'?'foldOpen':d.id==='zfl6'?'foldOpen':d.fo
 })();
 
 function buildFinishes(){const el=$('#finishes'),d=devOf(S.slots[S.sel]);if(el.dataset.dev===d.id)return;el.dataset.dev=d.id;el.innerHTML='';
-  finList(d).forEach((p,i)=>{const b=document.createElement('button');b.className='finish';b.style.setProperty('--c',p[1]);b.title=p[0];b.setAttribute('aria-label',p[0]);b.onclick=()=>{S.slots[S.sel].finish=i;sync();commit()};el.append(b)})}
+  finList(d).forEach((p,i)=>{const b=document.createElement('button');b.className='finish';b.style.setProperty('--c',p[1]);b.title=p[0];b.setAttribute('aria-label',p[0]);b.onclick=()=>{const sl=S.slots[S.sel];sl.finish=i;sl.custom=null;sync();commit()};el.append(b)});
+  const cl=document.createElement('label');cl.className='finish cust';cl.title='Custom colour';cl.setAttribute('aria-label','Custom colour');
+  const ci=document.createElement('input');ci.type='color';ci.id='finColor';ci.value='#ff5c35';
+  ci.oninput=()=>{S.slots[S.sel].custom=ci.value;sync();render()};ci.onchange=commit;cl.append(ci);el.append(cl)}
 BGS.forEach((p,i)=>{const b=document.createElement('button');b.className='bgsw';b.style.background='linear-gradient(135deg,'+p[0]+','+p[1]+')';b.title='Backdrop '+(i+1);b.onclick=()=>{S.bg=i;S.a=p[0];S.b=p[1];S.tr=0;sync();commit()};$('#bgs').append(b)});
 LOOKS.forEach((lk,i)=>{const b=document.createElement('button');b.className='look';b.dataset.i=i;b.innerHTML='<div class="chip" style="background:linear-gradient(135deg,'+lk.bg[0]+','+lk.bg[1]+')"></div><span>'+lk.n+'</span>';b.onclick=()=>{
-  S.a=lk.bg[0];S.b=lk.bg[1];S.bg=-1;S.tr=0;S.shadow=lk.shadow;S.dark=lk.dark;S.slots.forEach(s=>{s.finish=nearestIn(finList(devOf(s)),FINISH[lk.finish][1]);s.live=lk.live});sync();commit();say('Look: '+lk.n);
+  S.a=lk.bg[0];S.b=lk.bg[1];S.bg=-1;S.tr=0;S.shadow=lk.shadow;S.dark=lk.dark;S.slots.forEach(s=>{s.custom=null;s.finish=nearestIn(finList(devOf(s)),FINISH[lk.finish][1]);s.live=lk.live});sync();commit();say('Look: '+lk.n);
 };$('#looks').append(b)});
 LIVE.forEach(([id,n,ico])=>{const b=document.createElement('button');b.className='live-btn';b.dataset.m=id;b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ico+'</svg><span>'+n+'</span>';b.onclick=()=>{S.slots[S.sel].live=id;sync();commit();say(n+' screen on device '+(S.sel+1))};$('#liveModes').append(b)});
 
@@ -1917,7 +1943,9 @@ function setLayout(n){
   S.n=n;S.sel=Math.min(S.sel,n-1);sync();commit();say(n+' device'+(n>1?'s':'')+' in scene — spaced apart');
 }
 function seg(el,labels,fn){el.innerHTML='';labels.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>fn(i);el.append(b)})}
-seg($('#rat'),RAT.map(r=>r[0]),i=>{S.ratio=i;sync();commit()});
+seg($('#rat'),RAT.map(r=>r[0]),i=>{S.ratio=i;S.target=null;sync();commit()});
+(function(){const el=$('#sizePreset');el.innerHTML='<option value="">Custom ratio · 1×–3×</option>'+SIZES.map((z,i)=>'<option value="'+i+'">'+z[0]+' — '+z[1]+'×'+z[2]+'</option>').join('');
+  el.onchange=()=>{const z=SIZES[el.value];S.target=z?[z[1],z[2]]:null;if(z){let bi=0,bd=1e9;const ar=z[1]/z[2];RAT.forEach((r,i)=>{const d=Math.abs(r[1]/r[2]-ar);if(d<bd){bd=d;bi=i}});S.ratio=bi}sync();commit();say(z?'Export size: '+z[0]+' · '+z[1]+'×'+z[2]:'Custom ratio')}})();
 seg($('#fmt'),['PNG','JPG','WebP'],i=>{S.fmt=['png','jpg','webp'][i];sync();commit()});
 seg($('#xs'),['1×','2×','3×'],i=>{S.k=i+1;sync();commit()});
 seg($('#vidRes'),['FHD','4K'],i=>{S.vid.res=i;sync()});
@@ -1958,7 +1986,7 @@ $('#tr').onclick=()=>{S.tr=S.tr?0:1;sync();commit()};
 $('#liveToggle').onclick=()=>{S.liveOn=!S.liveOn;$('#liveToggle').textContent=S.liveOn?'Pause motion':'Resume motion';say(S.liveOn?'Live screens running':'Live screens paused')};
 
 $('#devAll').onclick=()=>{const id=S.slots[S.sel].dev;S.slots.forEach(s=>setDev(s,id));sync();commit();say('Device applied to all '+S.n+' slots')};
-$('#finishAll').onclick=()=>{const hex=finOf(S.slots[S.sel])[1];S.slots.forEach(s=>s.finish=nearestIn(finList(devOf(s)),hex));sync();commit();say('Finish applied to all devices')};
+$('#finishAll').onclick=()=>{const src=S.slots[S.sel],hex=finOf(src)[1];S.slots.forEach(s=>{if(src.custom){s.custom=src.custom}else{s.custom=null;s.finish=nearestIn(finList(devOf(s)),hex)}});sync();commit();say('Finish applied to all devices')};
 
 /* ---- screenshots ---- */
 function renderShots(){
@@ -1991,6 +2019,7 @@ function removeShot(i){
   renderShots();sync();commit();say('Screenshot removed');
 }
 $('#addShot').onclick=()=>$('#file').click();
+$('#fabAdd').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{addImages(e.target.files);e.target.value=''};
 $('#shotAll').onclick=()=>{if(!S.images.length)return say('Add screenshots first');S.slots.forEach((s,i)=>s.img=i%S.images.length);sync();commit();say('Screenshots applied to all devices')};
 /* ---------- capture a website (or load an image link) and fit it to every device ---------- */
@@ -2164,7 +2193,7 @@ function placeNote(p){
   S.noteSel=S.notes.length-1;sync();commit();say('Annotation added');
 }
 $('#abBody').addEventListener('pointerdown',e=>{
-  if(e.target.tagName==='IFRAME')return;
+  if(e.target.tagName==='IFRAME'||e.target.closest('.fab'))return;
   if(e.button===1||(VIEW.z>1&&!S.imgTool&&hit(pt(e))<0)){e.preventDefault();VIEW.pan={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y,id:e.pointerId};$('#abBody').classList.add('panning');try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}return}
   const p=pt(e);pointers.set(e.pointerId,p);try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}
   if(S.imgTool){placeNote(p);return}
@@ -2234,6 +2263,20 @@ function syncSliders(){
    3D VIEW controls
    ========================================================================== */
 $('#d3Toggle').onclick=()=>{S.d3.on=S.d3.on?0:1;sync();say(S.d3.on?'3D mode on — drag to rotate':'3D mode off')};
+const SCENES3D={
+  hero:(i,n,c)=>({x:c*.38,y:Math.abs(c)*.03,s:1.02-Math.abs(c)*.22,ry:-24-c*14,rx:8,rz:-c*3,r:0}),
+  side:(i,n,c)=>({x:c*.32,y:0,s:n>1?.8:1,ry:-58,rx:0,rz:0,r:0}),
+  stack:(i,n,c)=>({x:c*.13,y:c*.07,s:.92,ry:-32,rx:12,rz:-6,r:0}),
+  duo:(i,n,c)=>({x:c*.32,y:0,s:.9,ry:i%2?160:-22,rx:6,rz:0,r:0}),
+  flat:(i,n,c)=>({x:c*.3,y:c*.02,s:.85,ry:0,rx:-60,rz:c*14,r:0}),
+  iso:(i,n,c)=>({x:c*.3,y:-Math.abs(c)*.02,s:.95,ry:-35,rx:-22,rz:8,r:0})
+};
+function applyScene3d(name){
+  const n=S.slots.length;S.d3.on=1;
+  S.slots.forEach((sl,i)=>{const c=i-(n-1)/2;Object.assign(sl,SCENES3D[name](i,n,c))});
+  S.land=0;sync();commit();say('3D scene: '+name)
+}
+$$('#d3Scenes button').forEach(b=>b.onclick=()=>applyScene3d(b.dataset.sc));
 $$('#d3Presets button').forEach(b=>b.onclick=()=>{
   const [y,p,r]=b.dataset.a.split(',').map(Number);
   Object.assign(S.slots[S.sel],{ry:y,rx:p,rz:r});sync();commit();say('Angle preset applied');
@@ -2348,7 +2391,7 @@ function curImg(){const sl=S.slots[S.sel];return sl&&sl.img!=null?S.images[sl.im
 function autoStyle(){
   const im=curImg();if(!im)return say('Add a screenshot to the selected device first');
   const s=sampleImage(im.img);S.a=s.dark;S.b=s.light;S.bg=-1;S.tr=0;
-  S.slots[S.sel].finish=nearestIn(finList(devOf(S.slots[S.sel])),s.accent);sync();commit();say('Auto-styled from screenshot colours');
+  S.slots[S.sel].custom=null;S.slots[S.sel].finish=nearestIn(finList(devOf(S.slots[S.sel])),s.accent);sync();commit();say('Auto-styled from screenshot colours');
 }
 function autoCompose(){
   const im=curImg();if(!im)return say('Add a screenshot first');
@@ -2409,7 +2452,7 @@ const TEMPLATES=[
 /* scene state / save / load / share */
 function sceneState(){return JSON.stringify({
   slots:S.slots.map(s=>({...s})),n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,land:S.land,shadow:S.shadow,
-  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,notes:S.notes,keys:S.keys,captions:S.captions,d3:{...S.d3},
+  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,target:S.target||null,notes:S.notes,keys:S.keys,captions:S.captions,d3:{...S.d3},
   vid:{...S.vid,active:0,playing:0,progress:0,playhead:0,t0:0,audio:null},
   bgMedia:{...S.bgMedia,url:S.bgMedia.url},images:S.images.map(i=>({url:i.url,name:i.name}))
 })}
@@ -2519,14 +2562,17 @@ function sync(){
   const P=(el,on)=>el.setAttribute('aria-pressed',on?'true':'false');
   $$('#devs .dcard').forEach(b=>P(b,DEV[+b.dataset.i].id===S.slots[S.sel].dev));
   buildFinishes();const fl=finList(devOf(S.slots[S.sel])),fi=((S.slots[S.sel].finish||0)%fl.length+fl.length)%fl.length;
-  $$('#finishes .finish').forEach((b,i)=>P(b,i===fi));
-  $('#finishName').textContent=fl[fi][0];
+  const cu=S.slots[S.sel].custom;
+  $$('#finishes .finish').forEach((b,i)=>{if(b.classList.contains('cust')){P(b,!!cu);b.classList.toggle('has',!!cu);if(cu){b.style.setProperty('--c',cu);b.querySelector('input').value=cu}}else P(b,!cu&&i===fi)});
+  $('#finishName').textContent=cu?'Custom '+cu.toUpperCase():fl[fi][0];
   $$('#bgs .bgsw').forEach((b,i)=>P(b,i===S.bg&&!S.tr));
   $$('#looks .look').forEach(b=>P(b,+b.dataset.i===S.bg));
   $$('#lay button').forEach((b,i)=>P(b,i+1===S.n));
   $$('#rat button').forEach((b,i)=>P(b,i===S.ratio));
   $$('#fmt button').forEach((b,i)=>P(b,['png','jpg','webp'][i]===S.fmt));
-  $$('#xs button').forEach((b,i)=>P(b,i+1===S.k));
+  $$('#xs button').forEach((b,i)=>{P(b,!S.target&&i+1===S.k);b.disabled=!!S.target});
+  $$('#rat button').forEach((b,i)=>P(b,!S.target&&i===S.ratio));
+  $('#sizePreset').value=S.target?String(SIZES.findIndex(z=>z[1]===S.target[0]&&z[2]===S.target[1])):'';
   $$('#vidRes button').forEach((b,i)=>P(b,i===S.vid.res));
   $$('#vidOrient button').forEach((b,i)=>P(b,i===S.vid.orient));
   $$('#vidDur button').forEach((b,i)=>P(b,VDUR[i]===S.vid.dur));
@@ -2568,9 +2614,9 @@ function sync(){
 }
 
 function blobOf(){return new Promise(r=>{
-  const[w,h]=dim(),c=document.createElement('canvas');c.width=w*S.k;c.height=h*S.k;const x=c.getContext('2d');
+  const[w,h]=dim(),c=document.createElement('canvas'),K=S.target?S.target[0]/w:S.k;c.width=S.target?S.target[0]:w*S.k;c.height=S.target?S.target[1]:h*S.k;const x=c.getContext('2d');
   if(S.fmt==='jpg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}
-  drawScene(x,w,h,S.k,performance.now());
+  drawScene(x,w,h,K,performance.now());
   c.toBlob(r,{png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[S.fmt],.95);
 })}
 async function exportImg(){
