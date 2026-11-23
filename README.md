@@ -43,6 +43,12 @@ Drop a screenshot onto the stage (or paste with `Ctrl/⌘ + V`), pick a device, 
 - **Capture from URL** — paste a website address and Suum renders the page at the selected device's real screen size (via microlink.io) and places it on that device. Direct image links are placed as-is.
 - **Live site in the device** — press **Live** to load a URL (including `localhost` dev servers) interactively inside the selected device at its real viewport. Click, scroll and type right in the mockup; drag the bezel to move it. Esc exits.
 - **Zoom the preview** — scroll to zoom toward the cursor, drag empty space to pan, double-click or press `0` to reset.
+- **Custom colours** — beyond each model's official finishes, a colour picker paints any device any colour (applies to 2D and 3D; "Apply finish to all" copies it).
+- **Export size presets** — one tap to App Store (iPhone 6.9″/6.5″, iPad 13″), Google Play, Product Hunt, X, Instagram, LinkedIn, Open Graph and YouTube sizes, rendered at the exact pixel dimensions. Check each store's current requirements before submitting.
+- **3D scene presets** — Hero, Side by side, Stack, Front & back, Flat lay and Isometric arrangements for every device in one tap.
+- **Freeze live site** — turn the interactive page in a device into a screenshot. Public sites use the screenshot service; `localhost` and anything else is grabbed from your own tab via screen capture (the browser asks for permission).
+- **Works offline and installs** — a service worker caches the app so it opens without internet. Installed on a phone, Suum appears in the share sheet: share an image or a link straight into it.
+- **ខ្មែរ / English** — switch the interface language from the header. Product names and the text drawn inside scenes stay in English.
 - **Universal flipping** — every device rotates to landscape with the `L` key. Cameras, notches and crowns stay in the correct relative place.
 - **3D View** — rotate any device to any yaw, pitch and roll with sliders, presets or direct drag (Shift to roll, Alt to move). The screen art stays flat and undistorted by default; perspective is optional. Rotate past 90° to see a spec-based back — iPhone square camera island, Samsung vertical lens stack, Pixel camera bar, Xiaomi circular island, watch sensors and laptop lids — drawn from real hardware layouts, with no fake frame around the device.
 - **1–4 device compositions** with direct manipulation: tap to select, drag to move, pinch to scale, twist to rotate.

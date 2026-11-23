@@ -67,6 +67,13 @@ button{cursor:pointer}
 .iconbtn:hover:not(:disabled){color:var(--txt);border-color:var(--line2);background:var(--elev);transform:translateY(-1px)}
 .iconbtn:disabled{opacity:.35;cursor:not-allowed}
 .iconbtn svg{width:17px;height:17px}
+.iconbtn#lang{width:auto;min-width:37px;padding:0 9px;font:700 11px/1 "Inter","Noto Sans Khmer",sans-serif;letter-spacing:0}
+/* Khmer: no tracking or forced caps, and a font that carries the script everywhere */
+html[lang=km] *{letter-spacing:0!important;text-transform:none!important}
+html[lang=km] *{font-family:"Inter","Noto Sans Khmer",system-ui,sans-serif!important}
+html[lang=km] .brand h1,html[lang=km] .brand h1 *{font-family:"Space Grotesk","Noto Sans Khmer",sans-serif!important}
+html[lang=km] .btn-primary,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=km] .mtabs button{white-space:nowrap}
+html[lang=km] .tile,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=km] .chip,html[lang=km] .btn-ghost,html[lang=km] .live-btn{line-height:1.55}
 .iconbtn.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
 .btn-primary{display:flex;align-items:center;gap:9px;height:38px;padding:0 16px;border:0;border-radius:10px;color:#fff;font-weight:600;
   background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -12px var(--accent),inset 0 1px 0 rgba(255,255,255,.3);transition:.16s}
@@ -463,6 +470,7 @@ body.focus .stage-hint{opacity:.6}
     <button class="iconbtn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
     <button class="iconbtn" id="focusBtn" title="Focus preview (F)" aria-label="Focus preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3m13 5h3a2 2 0 0 0 2-2v-3"/></svg></button>
     <button class="iconbtn" id="th" title="Switch theme" aria-label="Switch theme"></button>
+    <button class="iconbtn" id="lang" title="ប្តូរទៅភាសាខ្មែរ" aria-label="Language" data-notr>ខ្មែរ</button>
     <button class="btn-primary" id="expTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Export</span></button>
   </header>
 
@@ -3055,8 +3063,139 @@ $('#installApp').onclick=async()=>{
   say('Use your browser menu → Install app / Add to Home screen');
 };
 
+/* ==========================================================================
+   LANGUAGE — English / ខ្មែរ. Visible labels are swapped in place from a dictionary,
+   so English stays the source of truth and switching back restores it exactly.
+   ========================================================================== */
+const KM={
+ /* header + panels */
+ 'Untitled scene':'ឈុតគ្មានឈ្មោះ','Export':'នាំចេញ','Devices':'ឧបករណ៍','Layers':'ស្រទាប់','Screens':'អេក្រង់',
+ 'Style':'រចនាប័ទ្ម','Smart':'ឆ្លាតវៃ','Canvas':'ផ្ទាំង','3D':'3D','Video':'វីដេអូ',
+ 'Undo (Ctrl+Z)':'មិនធ្វើវិញ (Ctrl+Z)','Undo':'មិនធ្វើវិញ','Redo (Ctrl+Shift+Z)':'ធ្វើវិញ (Ctrl+Shift+Z)','Redo':'ធ្វើវិញ',
+ 'Focus preview (F)':'មើលពេញអេក្រង់ (F)','Focus preview':'មើលពេញអេក្រង់','Switch theme':'ប្តូរពណ៌ផ្ទៃកម្មវិធី',
+ 'Search the library…':'ស្វែងរកក្នុងបណ្ណាល័យ…','Search devices':'ស្វែងរកឧបករណ៍','Use for whole scene':'ប្រើសម្រាប់ទាំងឈុត',
+ 'Duplicate':'ចម្លង','Delete layer':'លុបស្រទាប់','Screenshots':'រូបថតអេក្រង់',
+ 'Add screenshots (multiple)':'បន្ថែមរូបថតអេក្រង់ (ច្រើន)','Website or image URL':'គេហទំព័រ ឬ URL រូបភាព',
+ 'Capture':'ថត','Live':'ផ្ទាល់','Screenshot API key (optional)':'សោ API សម្រាប់ថតអេក្រង់ (ជម្រើស)',
+ 'Saved only in this browser.':'រក្សាទុកតែក្នុងកម្មវិធីរុករកនេះប៉ុណ្ណោះ។',
+ 'Paste image from clipboard':'បិទភ្ជាប់រូបភាពពីក្ដារតម្បៀតខ្ទាស់','Apply to all devices':'អនុវត្តទៅគ្រប់ឧបករណ៍','Clear all':'សម្អាតទាំងអស់',
+ 'Drop screenshots here':'ទម្លាក់រូបថតអេក្រង់នៅទីនេះ','Add many at once · tap a device first to target it':'បន្ថែមច្រើនក្នុងពេលតែមួយ · ចុចលើឧបករណ៍ជាមុនដើម្បីជ្រើសរើស',
+ 'tap':'ចុច','select device':'ជ្រើសឧបករណ៍','drag':'អូស','move':'ផ្លាស់ទី','pinch':'ច្បិច','scale':'ពង្រីក/បង្រួម','twist':'បង្វិល','rotate':'បង្វិល',
+ '❄ Freeze':'❄ ក្លាយជារូបថត','● LIVE ✕':'● ផ្ទាល់ ✕',
+ 'Library sections':'ផ្នែកបណ្ណាល័យ','Inspector sections':'ផ្នែកកែសម្រួល','Panels':'ផ្ទាំង',
+ /* style tab */
+ 'Looks':'រូបរាង','Composition':'ការរៀបចំ','Canvas ratio':'សមាមាត្រផ្ទាំង','Live screen':'អេក្រង់ផ្ទាល់',
+ 'Pause motion':'ផ្អាកចលនា','Resume motion':'បន្តចលនា','Flip every device':'បង្វិលគ្រប់ឧបករណ៍','Fit, don’t crop':'ដាក់ឲ្យល្មម មិនកាត់',
+ 'Dark chrome':'ស៊ុមងងឹត','Device finish':'ពណ៌ឧបករណ៍','Apply finish to all':'អនុវត្តពណ៌ទៅទាំងអស់','Custom colour':'ពណ៌ផ្ទាល់ខ្លួន',
+ 'Backdrop':'ផ្ទៃខាងក្រោយ','Transparent':'ថ្លា','Transform':'ការកែប្រែ','Scale':'ទំហំ','Rotate':'បង្វិល','Shadow':'ស្រមោល',
+ 'Clock':'នាឡិកា','Aurora':'អូរ៉ូរ៉ា','Music':'តន្ត្រី','Weather':'អាកាសធាតុ','Charts':'តារាង','Blank':'ទទេ',
+ /* smart */
+ 'Smart tools':'ឧបករណ៍ឆ្លាតវៃ','Auto-style':'រចនាស្វ័យប្រវត្តិ','Auto-compose':'រៀបចំស្វ័យប្រវត្តិ','Cut out':'កាត់ផ្ទៃខាងក្រោយ',
+ 'Upscale 2×':'ពង្រីក ២×','Caption':'ចំណងជើងរង','Do it all':'ធ្វើទាំងអស់','Scene templates':'គំរូឈុត','Saved scenes':'ឈុតដែលបានរក្សាទុក',
+ 'Save current':'រក្សាទុកឈុតបច្ចុប្បន្ន','Copy share link':'ចម្លងតំណចែករំលែក','ZIP all images':'ZIP រូបភាពទាំងអស់',
+ 'Install app / share into Suum':'ដំឡើងកម្មវិធី / ចែករំលែកចូល Suum','Brand kit':'ឈុតម៉ាក','Save':'រក្សាទុក','Logo / watermark':'ឡូហ្គោ / ស្លាកទឹក',
+ /* canvas */
+ 'Canvas & annotations':'ផ្ទាំង និងចំណាំ','Backdrop media':'មេឌៀផ្ទៃខាងក្រោយ','Add backdrop image / video':'បន្ថែមរូបភាព / វីដេអូផ្ទៃខាងក្រោយ',
+ 'Blur':'ព្រិល','Perspective':'ទស្សនវិស័យ','Reflection':'ការឆ្លុះ','Custom device frame':'ស៊ុមឧបករណ៍ផ្ទាល់ខ្លួន','Upload frame PNG':'ផ្ទុកឡើងស៊ុម PNG',
+ 'Frame size':'ទំហំស៊ុម','Screen crop / pan':'កាត់ / រុញអេក្រង់','Zoom':'ពង្រីក','Offset X':'ទីតាំង X','Offset Y':'ទីតាំង Y','Annotations':'ចំណាំ','Delete selected':'លុបអ្វីដែលបានជ្រើស',
+ /* 3D */
+ '3D View':'ទិដ្ឋភាព 3D','Enable 3D mode':'បើកមុខងារ 3D','Angle presets':'មុំដែលកំណត់ទុក','Front':'ខាងមុខ','Left ¾':'ឆ្វេង ¾','Right ¾':'ស្តាំ ¾',
+ 'Top down':'ពីលើចុះក្រោម','Back':'ខាងក្រោយ','Selected device':'ឧបករណ៍ដែលបានជ្រើស','Yaw / turn':'បង្វិលផ្ដេក','Pitch / tilt':'ផ្អៀងឡើងចុះ',
+ 'Roll / spin':'វិល','Apply angles to all':'អនុវត្តមុំទៅទាំងអស់','Reset angles':'កំណត់មុំឡើងវិញ','Scene presets':'ឈុត 3D ដែលកំណត់ទុក',
+ 'all devices':'គ្រប់ឧបករណ៍','Hero':'ឈុតសំខាន់','Side by side':'ជាប់គ្នា','Stack':'ជង់','Front & back':'មុខ និងក្រោយ','Flat lay':'ដាក់រាបស្មើ','Isometric':'អ៊ីសូមេទ្រិច',
+ /* export */
+ 'Export image':'នាំចេញរូបភាព','Copy':'ចម្លង','Size preset':'ទំហំដែលកំណត់ទុក','Custom ratio · 1×–3×':'សមាមាត្រផ្ទាល់ខ្លួន · 1×–3×',
+ 'Export size preset':'ទំហំនាំចេញដែលកំណត់ទុក',
+ /* video */
+ 'Video Studio':'ស្ទូឌីយោវីដេអូ','Camera motion':'ចលនាកាមេរ៉ា','Easing':'ភាពរលូន','Intensity':'កម្រិត','Staggered entrance':'ចូលជាលំដាប់',
+ 'Background parallax':'ប៉ារ៉ាឡាក់ស៊ីផ្ទៃខាងក្រោយ','Seamless loop':'រង្វិលជុំគ្មានថ្នេរ','Text overlay':'អក្សរគ្របលើ','Add':'បន្ថែម','Title':'ចំណងជើង',
+ 'Subtitle':'ចំណងជើងរង','Text size':'ទំហំអក្សរ','Watermark':'ស្លាកទឹក','Soundtrack':'តន្ត្រីផ្ទៃខាងក្រោយ','Add music':'បន្ថែមតន្ត្រី','Play':'ចាក់','Remove':'ដកចេញ',
+ 'Keyframe timeline':'ខ្សែពេលវេលា Keyframe','Add at playhead':'បន្ថែមត្រង់ playhead','Text animation':'ចលនាអក្សរ','Import .srt subtitles':'នាំចូលចំណងជើងរង .srt',
+ 'Voiceover & loops':'សំឡេងអធិប្បាយ និងរង្វិលជុំ','Record voiceover':'ថតសំឡេងអធិប្បាយ','Use as soundtrack':'ប្រើជាតន្ត្រីផ្ទៃខាងក្រោយ',
+ 'GIF-style loop':'រង្វិលជុំបែប GIF','WebP sprite sheet':'សន្លឹក sprite WebP','Social presets':'ទំហំបណ្ដាញសង្គម','Render queue':'ជួរដំណើរការ',
+ 'Add current':'បន្ថែមបច្ចុប្បន្ន','Render all queued':'ដំណើរការទាំងអស់ក្នុងជួរ','Output':'លទ្ធផល','Resolution':'គុណភាពបង្ហាញ','Orientation':'ទិសដៅ',
+ 'Duration':'រយៈពេល','Frame rate':'អត្រាស៊ុម','Codec':'កូដេក','Bitrate':'ប៊ីតរេត','Record video':'ថតវីដេអូ','Landscape':'ផ្ដេក','Portrait':'បញ្ឈរ',
+ 'Cancel':'បោះបង់','Recording your scene':'កំពុងថតឈុតរបស់អ្នក',
+ /* messages */
+ 'Undone':'បានមិនធ្វើវិញ','Redone':'បានធ្វើវិញ','Screenshot removed':'បានលុបរូបថតអេក្រង់','All screenshots cleared':'បានសម្អាតរូបថតអេក្រង់ទាំងអស់',
+ 'Screenshots applied to all devices':'បានដាក់រូបថតអេក្រង់លើគ្រប់ឧបករណ៍','Add screenshots first':'សូមបន្ថែមរូបថតអេក្រង់ជាមុន',
+ 'ZIP exported':'បាននាំចេញ ZIP','Annotation added':'បានបន្ថែមចំណាំ','Angle preset applied':'បានអនុវត្តមុំ','Angles applied to all devices':'បានអនុវត្តមុំទៅគ្រប់ឧបករណ៍',
+ 'All angles reset':'បានកំណត់មុំទាំងអស់ឡើងវិញ','Custom ratio':'សមាមាត្រផ្ទាល់ខ្លួន','Live site closed':'បានបិទគេហទំព័រផ្ទាល់','Editor restored':'បានត្រឡប់ទៅកម្មវិធីកែសម្រួល',
+ 'Full-screen preview — press F or Esc to exit':'មើលពេញអេក្រង់ — ចុច F ឬ Esc ដើម្បីចេញ','Rendering…':'កំពុងបង្កើត…',
+ 'Ready — tap a device to select it, then drop screenshots or pick a live screen.':'រួចរាល់ — ចុចលើឧបករណ៍ដើម្បីជ្រើស បន្ទាប់មកទម្លាក់រូបថតអេក្រង់ ឬជ្រើសអេក្រង់ផ្ទាល់។',
+ 'Device applied':'បានអនុវត្តឧបករណ៍','layout':'ប្លង់','nudge':'រុញ','focus':'មើលពេញ','undo':'មិនធ្វើវិញ','Finish applied to all devices':'បានអនុវត្តពណ៌ទៅគ្រប់ឧបករណ៍','Auto-styled from screenshot colours':'បានរចនាស្វ័យប្រវត្តិតាមពណ៌រូបថត'
+};
+const KM_GROUP={'Phones':'ទូរស័ព្ទ','Foldables':'ទូរស័ព្ទបត់','Tablets':'ថេប្លេត','Computers':'កុំព្យូទ័រ','Wearables':'ឧបករណ៍ពាក់','Web':'គេហទំព័រ'};
+const KM_RULES=[
+ [/^(Phones|Foldables|Tablets|Computers|Wearables|Web)\s+·\s+(\d+)$/i,(m)=>(KM_GROUP[m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()]||m[1])+' · '+m[2]],
+ [/^(.+?)\s+·\s+device (\d+)$/i,(m)=>m[1]+' · ឧបករណ៍ '+m[2]],
+ [/^Search (\d+) devices…$/,(m)=>'ស្វែងរក '+m[1]+' ឧបករណ៍…'],
+ [/^Showing on device (\d+)$/,(m)=>'កំពុងបង្ហាញលើឧបករណ៍ '+m[1]],
+ [/^Screen on device (\d+)$/,(m)=>'អេក្រង់លើឧបករណ៍ '+m[1]],
+ [/^· device (\d+)$/i,(m)=>'· ឧបករណ៍ '+m[1]],
+ [/^Look: (.+)$/,(m)=>'រូបរាង៖ '+m[1]],
+ [/^Finish —$/,()=>'ពណ៌ —'],
+ [/^Custom (#[0-9A-F]{6})$/i,(m)=>'ពណ៌ផ្ទាល់ខ្លួន '+m[1]],
+ [/^(\d+) screenshots? added.*$/,(m)=>'បានបន្ថែមរូបថតអេក្រង់ '+m[1]],
+ [/^Captured (.+) on device (\d+)$/,(m)=>'បានថត '+m[1]+' លើឧបករណ៍ '+m[2]],
+ [/^Frozen onto device (\d+).*$/,(m)=>'បានក្លាយជារូបថតលើឧបករណ៍ '+m[1]],
+ [/^Export size: (.+)$/,(m)=>'ទំហំនាំចេញ៖ '+m[1]],
+ [/^Exported (.+)$/,(m)=>'បាននាំចេញ '+m[1]],
+ [/^3D scene: (.+)$/,(m)=>'ឈុត 3D៖ '+m[1]]
+];
+let LANG='en';try{LANG=localStorage.getItem('fk-lang')||((navigator.language||'').toLowerCase().startsWith('km')?'km':'en')}catch(_){}
+function trKm(text){
+  const t=text.trim();if(!t)return null;
+  if(KM[t])return text.replace(t,KM[t]);
+  for(const [re,fn] of KM_RULES){const m=t.match(re);if(m)return text.replace(t,fn(m))}
+  return null;
+}
+const I18N={orig:new WeakMap(),attrs:['title','placeholder','aria-label'],busy:false,obs:null};
+function i18nNode(root){
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;return p&&/^(SCRIPT|STYLE|TEXTAREA|OPTION)$/.test(p.nodeName)||p&&p.closest&&p.closest('[data-notr],svg')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+  let n;while(n=w.nextNode()){
+    if(LANG==='km'){const o=I18N.orig.has(n)?I18N.orig.get(n):n.nodeValue,k=trKm(o);I18N.orig.set(n,o);if(k!==null&&k!==n.nodeValue)n.nodeValue=k;else if(k===null)n.nodeValue=o}
+    else if(I18N.orig.has(n)){n.nodeValue=I18N.orig.get(n);I18N.orig.delete(n)}
+  }
+  const els=root.nodeType===1?[root,...root.querySelectorAll('[title],[placeholder],[aria-label]')]:[];
+  els.forEach(el=>I18N.attrs.forEach(a=>{
+    if(!el.hasAttribute(a))return;const key='data-en-'+a,cur=el.getAttribute(a);
+    if(LANG==='km'){const o=el.hasAttribute(key)?el.getAttribute(key):cur,k=trKm(o);el.setAttribute(key,o);el.setAttribute(a,k!==null?k:o)}
+    else if(el.hasAttribute(key)){el.setAttribute(a,el.getAttribute(key));el.removeAttribute(key)}
+  }));
+  /* <option> labels + select placeholders */
+  root.nodeType===1&&(root.nodeName==='OPTION'?[root]:[...root.querySelectorAll('option')]).forEach(op=>{
+    if(LANG==='km'){const o=op.dataset.en!==undefined?op.dataset.en:op.textContent,k=trKm(o);op.dataset.en=o;if(k!==null)op.textContent=k}
+    else if(op.dataset.en!==undefined){op.textContent=op.dataset.en;delete op.dataset.en}
+  });
+}
+function applyLang(){
+  document.documentElement.lang=LANG==='km'?'km':'en';
+  I18N.busy=true;if(I18N.obs)I18N.obs.disconnect();
+  i18nNode(document.body);
+  const b=$('#lang');if(b){b.textContent=LANG==='km'?'EN':'ខ្មែរ';b.title=LANG==='km'?'Switch to English':'ប្តូរទៅភាសាខ្មែរ'}
+  watchLang();I18N.busy=false;
+}
+function watchLang(){
+  if(!I18N.obs){
+    I18N.obs=new MutationObserver(recs=>{
+      if(LANG!=='km')return;
+      I18N.obs.disconnect();
+      recs.forEach(r=>{
+        if(r.type==='characterData'){I18N.orig.set(r.target,r.target.nodeValue);const k=trKm(r.target.nodeValue);if(k!==null)r.target.nodeValue=k}
+        else if(r.type==='attributes'){const el=r.target,a=r.attributeName,k=trKm(el.getAttribute(a)||'');if(k!==null){el.setAttribute('data-en-'+a,el.getAttribute(a));el.setAttribute(a,k)}}
+        else r.addedNodes.forEach(nd=>{if(nd.nodeType===1)i18nNode(nd);else if(nd.nodeType===3&&nd.parentNode)i18nNode(nd.parentNode)});
+      });
+      watchLang();
+    });
+  }
+  I18N.obs.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:I18N.attrs});
+}
+$('#lang').onclick=()=>{LANG=LANG==='km'?'en':'km';try{localStorage.setItem('fk-lang',LANG)}catch(_){}applyLang();say(LANG==='km'?'ប្តូរទៅភាសាខ្មែរ':'Switched to English')};
+
+
 /* Boot */
-applyTh();renderBrand();renderScenes();sync();commit();updateTabArrows();requestAnimationFrame(tick);
+applyTh();renderBrand();renderScenes();sync();commit();updateTabArrows();requestAnimationFrame(tick);applyLang();
 try{const q=new URLSearchParams(location.search),shared=[q.get('url'),q.get('text'),q.get('title')].join(' ').match(/https?:\/\/\S+/);
   if(shared){$('#shotUrl').value=shared[0];say('Shared link ready — press Capture or Live')}
   const nShared=+q.get('shared')||0;
