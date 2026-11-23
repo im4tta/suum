@@ -11,7 +11,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link id="manifestLink" rel="manifest">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
 /* ============================================================
    SUUM (ស៊ុម) STUDIO — "Ink & Ember"
@@ -2991,17 +2991,7 @@ addEventListener('keydown',e=>{
   else if(k.startsWith('arrow')){e.preventDefault();const sl=S.slots[S.sel],d=k==='arrowleft'?-.01:k==='arrowright'?.01:0,v=k==='arrowup'?-.01:k==='arrowdown'?.01:0;sl.x=Math.max(-.6,Math.min(.6,sl.x+d));sl.y=Math.max(-.6,Math.min(.6,sl.y+v));render();clearTimeout(window._nk);window._nk=setTimeout(commit,250)}
 });
 
-/* PWA manifest / install / share target */
-(function(){
-  try{
-    const manifest={name:'ស៊ុម Suum',short_name:'Suum',lang:'en',description:'Device mockups and video scenes',
-      start_url:location.href.split('#')[0],display:'standalone',background_color:'#0B0B0D',theme_color:'#FF5C35',
-      icons:[{src:new URL('icon-192.png',location.href).href,sizes:'192x192',type:'image/png'},{src:new URL('icon-512.png',location.href).href,sizes:'512x512',type:'image/png',purpose:'any'},{src:new URL('favicon.svg',location.href).href,sizes:'any',type:'image/svg+xml'}],
-      share_target:{action:location.href.split('#')[0].split('?')[0],method:'GET',enctype:'application/x-www-form-urlencoded',params:{title:'title',text:'text',url:'url'}}};
-    const url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
-    $('#manifestLink').href=url;
-  }catch(_){}
-})();
+/* PWA install / offline / share target (manifest.webmanifest + sw.js) */
 let deferredPrompt=null;
 addEventListener('beforeinstallprompt',e=>{deferredPrompt=e});
 $('#installApp').onclick=async()=>{
@@ -3012,7 +3002,18 @@ $('#installApp').onclick=async()=>{
 /* Boot */
 applyTh();renderBrand();renderScenes();sync();commit();updateTabArrows();requestAnimationFrame(tick);
 try{const q=new URLSearchParams(location.search),shared=[q.get('url'),q.get('text'),q.get('title')].join(' ').match(/https?:\/\/\S+/);
-  if(shared){$('#shotUrl').value=shared[0];say('Shared link ready — press Capture or Live');history.replaceState(null,'',location.pathname+location.hash)}}catch(_){}
+  if(shared){$('#shotUrl').value=shared[0];say('Shared link ready — press Capture or Live')}
+  const nShared=+q.get('shared')||0;
+  if(nShared&&'caches' in window){
+    caches.open('suum-share').then(async c=>{
+      const files=[];
+      for(let i=0;i<nShared;i++){const r=await c.match('shared/'+i);if(!r)continue;const b=await r.blob();files.push(new File([b],decodeURIComponent(r.headers.get('x-name')||'shared.png'),{type:b.type}));await c.delete('shared/'+i)}
+      if(files.length){addImages(files);say(files.length+' shared image'+(files.length>1?'s':'')+' added')}
+    }).catch(()=>{});
+  }
+  if(shared||nShared)history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
+/* offline support: cache the app shell (needs http/https, not file://) */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 try{const hm=location.hash.match(/s=(.+)/);if(hm)restoreState(decodeURIComponent(escape(atob(hm[1]))))}catch(_){}
 </script>
 </body>
