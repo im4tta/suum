@@ -1,5 +1,5 @@
 /* Suum service worker — offline app shell + share target for images and links */
-const VERSION = 'suum-v1';
+const VERSION = 'suum-v2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 const SHARE = 'suum-share';
 
@@ -55,7 +55,7 @@ self.addEventListener('fetch', e => {
   }
 
   /* Our own files and Google Fonts: serve cached, refresh in the background */
-  const fonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+  const fonts = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'].includes(url.hostname);
   if (url.origin === self.location.origin || fonts) {
     e.respondWith(
       caches.open(VERSION).then(async c => {

@@ -114,6 +114,7 @@ html[lang=km] .tile,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=
   body[data-rtab="video"] .panel-right .panel-inner>section[data-group="video"],
   body[data-ltab="devices"] .panel-left .panel-inner>section[data-group="devices"],
   body[data-ltab="layers"] .panel-left .panel-inner>section[data-group="layers"],
+  body[data-ltab="emoji"] .panel-left .panel-inner>section[data-group="emoji"],
   body[data-ltab="screens"] .panel-left .panel-inner>section[data-group="screens"]{display:block}
 }
 .panel-inner{padding:16px 14px 26px;display:flex;flex-direction:column;gap:20px}
@@ -343,6 +344,11 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 #liveLayer .lv-hw{position:absolute;background:#000;pointer-events:none}
 .fab{display:none;position:absolute;right:10px;bottom:10px;z-index:6;width:46px;height:46px;border-radius:50%;border:0;color:#fff;place-items:center;background:linear-gradient(145deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35)}
 .fab svg{width:22px;height:22px}.fab:active{transform:scale(.94)}
+.panel-left .rtabs{padding-right:10px}.panel-left .rtabs button{padding:8px 8px}
+.stk-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.stk{aspect-ratio:1;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--c,var(--accent));transition:.15s}
+.stk:hover,.stk:focus-visible{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+.stk svg{width:30px;height:30px;overflow:visible;display:block}.stk.skel{opacity:.35}
 .ab-pill.zoom{cursor:pointer}.ab-pill.zoom:hover{color:var(--txt);border-color:var(--line2)}
 .ab-pill.freeze{color:var(--accent);border-color:var(--accent);cursor:pointer}.ab-pill.freeze:hover{background:var(--accent-soft)}.ab-pill.freeze.busy{opacity:.55;pointer-events:none}
 .ab-pill.live{color:#fff;background:#E5484D;border-color:#E5484D;cursor:pointer}
@@ -427,8 +433,11 @@ body.focus .stage-hint{opacity:.6}
   body[data-tab="smart"] section[data-group="smart"]{display:block}
   body[data-tab="canvas"] section[data-group="canvas"]{display:block}
   body[data-tab="3d"] section[data-group="3d"]{display:block}
+  body[data-tab="emoji"] section[data-group="emoji"]{display:block}
+  .stk-grid{grid-template-columns:repeat(6,1fr)}
   section[data-group="devices"]{order:1}
   section[data-group="screens"]{order:2}
+  section[data-group="emoji"]{order:2}
   section[data-group="style"]{order:3}
   section[data-group="export"]{order:4}
   section[data-group="video"]{order:5}
@@ -484,6 +493,7 @@ body.focus .stage-hint{opacity:.6}
           <button data-ltab="devices" aria-pressed="true">Devices</button>
           <button data-ltab="layers" aria-pressed="false">Layers</button>
           <button data-ltab="screens" aria-pressed="false">Screens</button>
+          <button data-ltab="emoji" aria-pressed="false">Emoji</button>
         </nav>
         <span class="rtabs-more" aria-hidden="true">›</span>
       </div>
@@ -517,6 +527,25 @@ body.focus .stage-hint{opacity:.6}
         <div class="empty-hint" id="shotHint">Add images, then tap one to place it on the selected device. Or drag it onto a device in the scene.</div>
         <div class="section-foot"><button class="tiny-btn" id="shotAll">Apply to all devices</button><button class="tiny-btn" id="shotClear">Clear all</button></div>
         <input type="file" id="file" accept="image/*" multiple hidden>
+      </section>
+
+      <section data-group="emoji">
+        <div class="s-head"><div class="s-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.2a4.6 4.6 0 0 0 8 0"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/></svg>Emoji stickers</div><span class="s-count" id="stkCount">0</span></div>
+        <div class="seg" id="stkVar" role="group" aria-label="Icon style"></div>
+        <div id="stkGrid" style="margin-top:12px"><div class="empty-hint">Open this tab to load the emoji.</div></div>
+        <p class="inline">Hover an emoji to see its motion and hear it, click to add it to the scene. Tap a sticker in the scene to replay it, drag to move it.</p>
+
+        <div id="stkEdit" hidden>
+          <div class="s-head" style="margin-top:16px"><div class="s-title">Selected · <span id="stkName"></span></div></div>
+          <div class="slider-row"><div class="slider-top"><label for="stkSize">Size</label><output id="stkSizeVal">14%</output></div><input type="range" id="stkSize" min="3" max="60" value="14"></div>
+          <div class="slider-row"><div class="slider-top"><label for="stkRot">Rotate</label><output id="stkRotVal">0°</output></div><input type="range" id="stkRot" min="-180" max="180" value="0"></div>
+          <div class="customrow"><input type="color" id="stkColor" class="cpicker" value="#FFC83D" aria-label="Sticker colour"><button class="tiny-btn" id="stkReplay" type="button">Replay</button><button class="tiny-btn" id="stkDup" type="button">Duplicate</button><button class="tiny-btn" id="stkDel" type="button">Delete</button></div>
+        </div>
+
+        <div class="s-head" style="margin-top:18px"><div class="s-title">Sound</div><button class="tiny-btn on" id="stkSound" type="button">Sound on</button></div>
+        <div class="slider-row"><div class="slider-top"><label for="stkVol">Volume</label><output id="stkVolVal">70%</output></div><input type="range" id="stkVol" min="0" max="100" value="70"></div>
+        <div class="section-foot"><button class="tiny-btn" id="stkClear" type="button">Clear stickers</button></div>
+        <p class="inline" data-notr>Icons, motion and sound by <a href="https://jiggicons.com" target="_blank" rel="noopener" style="color:var(--accent)">Jiggicons</a> — the free set, loaded from the official package. Sound starts after your first click. Stickers play in recorded video, with their sound.</p>
       </section>
 
     </div></aside>
@@ -778,6 +807,7 @@ body.focus .stage-hint{opacity:.6}
   <nav class="mtabs" aria-label="Panels">
     <button data-g="devices" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>Devices</button>
     <button data-g="screens" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Screens</button>
+    <button data-g="emoji" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.2a4.6 4.6 0 0 0 8 0"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/></svg>Emoji</button>
     <button data-g="style" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a9 9 0 1 0 9 9c-5 0-9-4-9-9Z"/></svg>Style</button>
     <button data-g="export" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Export</button>
     <button data-g="video" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>Video</button>
@@ -990,7 +1020,7 @@ const S={
   slots:preset(1), n:1, sel:0, ratio:1, fit:0, dark:0, shadow:40,
   a:BGS[0][0], b:BGS[0][1], bg:0, tr:0, fmt:'png', k:2,
   liveOn:true, images:[], armed:null, boxes:[],
-  notes:[], noteSel:-1, imgTool:null, toolColor:'#FF5C35',
+  notes:[], noteSel:-1, stickers:[], stkSel:-1, imgTool:null, toolColor:'#FF5C35',
   d3:{on:0,depth:0,mode:'yaw'},
   bgMedia:{type:'none',url:'',blur:0,tilt:0,reflect:0}, customFrame:null,
   brand:{font:'Space Grotesk',logo:'Suum',colors:['#FF5C35','#1B1D22','#EDE4D9']},
@@ -1815,7 +1845,7 @@ function drawScene(c,W,H,K,t){
     const gf=c.createLinearGradient(0,H*.6,0,H);gf.addColorStop(0,'transparent');gf.addColorStop(1,S.a);
     c.fillStyle=gf;c.fillRect(0,H*.6,W,H*.4);
   }
-  drawNotes(c,W,H);
+  drawNotes(c,W,H);drawStickers(c,W,H,K);
   c.restore();
   if(m.active&&m.text){
     const al=m.loop?1:Math.max(0,Math.min(1,p/.1,(1-p)/.1));
@@ -1845,7 +1875,7 @@ function drawScene(c,W,H,K,t){
 }
 
 function drawOverlay(){
-  const W=cv.width,H=cv.height;ox.clearRect(0,0,W,H);
+  const W=cv.width,H=cv.height;ox.clearRect(0,0,W,H);drawStickerSel(ox,W,H);
   const b=S.boxes[S.sel];if(!b)return;
   ox.save();ox.translate(b.cx,b.cy);ox.rotate(b.a);
   ox.strokeStyle='#FF5C35';ox.lineWidth=Math.max(1.5,W*.0012);ox.setLineDash([W*.012,W*.009]);
@@ -1882,7 +1912,7 @@ function tick(t){requestAnimationFrame(tick);if(!S.liveOn)return;if(t-lastFrame<
 function say(msg){$('#status').textContent=msg;const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2400)}
 
 let hist=[],hi=-1;
-function snap(){return JSON.stringify({target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
+function snap(){return JSON.stringify({stickers:S.stickers.map(s=>({...s})),stkSel:S.stkSel,target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
 function commit(){hist=hist.slice(0,hi+1);hist.push(snap());hi=hist.length-1;histUI()}
 function restore(str){const o=JSON.parse(str);Object.assign(S,o);sync();render()}
 function undo(){if(hi>0){hi--;restore(hist[hi]);say('Undone')}}
@@ -2261,6 +2291,9 @@ $('#abBody').addEventListener('pointerdown',e=>{
   if(e.button===1||(VIEW.z>1&&!S.imgTool&&hit(pt(e))<0)){e.preventDefault();VIEW.pan={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y,id:e.pointerId};$('#abBody').classList.add('panning');try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}return}
   const p=pt(e);pointers.set(e.pointerId,p);try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}
   if(S.imgTool){placeNote(p);return}
+  {const si=hitSticker(p);
+   if(si>=0){const st=S.stickers[si];S.stkSel=si;STKDRAG={i:si,id:e.pointerId,x:p.x,y:p.y,ox:st.x,oy:st.y,moved:false};stkSyncUI();stkTrigger(si);render();return}
+   else if(S.stkSel>=0){S.stkSel=-1;stkSyncUI()}}
   if(S.d3.on&&!e.altKey){
     const i=hit(p);
     if(i>=0){S.sel=i;const sl=S.slots[i];
@@ -2281,6 +2314,7 @@ $('#abBody').addEventListener('pointerdown',e=>{
 $('#abBody').addEventListener('pointermove',e=>{
   if(VIEW.pan&&VIEW.pan.id===e.pointerId){setView(VIEW.z,VIEW.pan.vx+e.clientX-VIEW.pan.x,VIEW.pan.vy+e.clientY-VIEW.pan.y);return}
   const p=pt(e);if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,p);
+  if(STKDRAG&&STKDRAG.id===e.pointerId){const st=S.stickers[STKDRAG.i];if(st){const nx=Math.max(0,Math.min(1,STKDRAG.ox+(p.x-STKDRAG.x)/cv.width)),ny=Math.max(0,Math.min(1,STKDRAG.oy+(p.y-STKDRAG.y)/cv.height));if(Math.abs(nx-st.x)+Math.abs(ny-st.y)>0)STKDRAG.moved=true;st.x=+nx.toFixed(4);st.y=+ny.toFixed(4);render()}return}
   if(rotDrag){
     const sl=S.slots[rotDrag.i],dx=(p.x-rotDrag.x)/cv.width*360,dy=(p.y-rotDrag.y)/cv.height*180;
     const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2309,7 +2343,7 @@ $('#abBody').addEventListener('pointermove',e=>{
     render();
   }
 });
-function endPointer(e){if(VIEW.pan&&VIEW.pan.id===e.pointerId){VIEW.pan=null;$('#abBody').classList.remove('panning');return}pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
+function endPointer(e){if(STKDRAG&&STKDRAG.id===e.pointerId){const mv=STKDRAG.moved;STKDRAG=null;pointers.delete(e.pointerId);if(mv)commit();return}if(VIEW.pan&&VIEW.pan.id===e.pointerId){VIEW.pan=null;$('#abBody').classList.remove('panning');return}pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
 $('#abBody').addEventListener('pointerup',endPointer);
 $('#abBody').addEventListener('pointercancel',endPointer);
 $('#abBody').addEventListener('dblclick',e=>{const i=hit(pt(e));if(i<0&&VIEW.z!==1){setView(1,0,0);return}if(i>=0){Object.assign(S.slots[i],{x:0,y:0,s:1,r:0});S.sel=i;sync();commit();say('Device '+ (i+1)+' reset')}});
@@ -2516,13 +2550,14 @@ const TEMPLATES=[
 /* scene state / save / load / share */
 function sceneState(){return JSON.stringify({
   slots:S.slots.map(s=>({...s})),n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,land:S.land,shadow:S.shadow,
-  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,target:S.target||null,notes:S.notes,keys:S.keys,captions:S.captions,d3:{...S.d3},
+  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,target:S.target||null,notes:S.notes,stickers:S.stickers.map(s=>({...s})),keys:S.keys,captions:S.captions,d3:{...S.d3},
   vid:{...S.vid,active:0,playing:0,progress:0,playhead:0,t0:0,audio:null},
   bgMedia:{...S.bgMedia,url:S.bgMedia.url},images:S.images.map(i=>({url:i.url,name:i.name}))
 })}
 function restoreState(str){
   const o=JSON.parse(str),imgs=o.images||[];delete o.images;
-  Object.assign(S,o);S.images=[];
+  if(!o.stickers)o.stickers=[];o.stkSel=-1;
+  Object.assign(S,o);S.images=[];stkFix();
   return Promise.all(imgs.map(i=>new Promise(r=>{
     const im=new Image();im.onload=()=>r({url:i.url,img:im,name:i.name});im.onerror=()=>r(null);im.src=i.url;
   }))).then(arr=>{S.images=arr.filter(Boolean);sync();say('Scene loaded')});
@@ -2674,10 +2709,10 @@ function sync(){
   [['d3Yaw',sl3.ry||0,'°'],['d3Pitch',sl3.rx||0,'°'],['d3Roll',sl3.rz||0,'°'],['d3Depth',S.d3.depth,'%']].forEach(([id,v,su])=>{
     const el=$('#'+id);if(!el)return;if(+el.value!==v){el.value=v;fillRange(el)}$('#'+id+'Val').textContent=v+su;
   });
-  syncSliders();renderShots();renderLayers();renderKeys();renderQueue();render();
+  syncSliders();renderShots();renderLayers();renderKeys();renderQueue();stkSyncUI();render();
 }
 
-function blobOf(){return new Promise(r=>{
+async function blobOf(){await stkReady();return new Promise(r=>{
   const[w,h]=dim(),c=document.createElement('canvas'),K=S.target?S.target[0]/w:S.k;c.width=S.target?S.target[0]:w*S.k;c.height=S.target?S.target[1]:h*S.k;const x=c.getContext('2d');
   if(S.fmt==='jpg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}
   drawScene(x,w,h,K,performance.now());
@@ -2890,6 +2925,7 @@ async function recordVideo(){
   if(typeof MediaRecorder==='undefined'){say('Video recording is not supported in this browser');return}
   if(recState){say('A recording is already in progress');return}
   const m=S.vid,[w,h]=videoSize(),dur=m.dur*1000,fps=m.fps,mime=pickMime();
+  let stkPlan=null;try{await stkReady();stkPlan=await stkAudioPlan(dur)}catch(_){}
   const c=document.createElement('canvas');c.width=w;c.height=h;
   const x=c.getContext('2d',{alpha:false});
   const wasActive=m.active,wasPlaying=m.playing;
@@ -2897,6 +2933,7 @@ async function recordVideo(){
   drawVideoFrame(x,w,h,performance.now());
   let stream;try{stream=c.captureStream(fps)}catch(e){m.active=wasActive;say('Canvas capture not supported');return}
   if(audioEl&&audioDest){try{await audioCtx.resume();audioEl.currentTime=0;audioEl.play().catch(()=>{});stream.addTrack(audioDest.stream.getAudioTracks()[0])}catch(_){}}
+  if(stkPlan&&!stream.getAudioTracks().length){try{stream.addTrack(audioDest.stream.getAudioTracks()[0])}catch(_){}}
   let mr;
   try{mr=new MediaRecorder(stream,{mimeType:mime||undefined,videoBitsPerSecond:Math.round(BITRATE[m.bitrate]*(m.res?2.2:1))})}catch(e){
     stream.getTracks().forEach(t=>t.stop());m.active=wasActive;say('Video encoder unavailable');return;
@@ -2909,6 +2946,7 @@ async function recordVideo(){
   $('#rbarFill').style.width='0%';$('#rpct').textContent='0%';
   $('#rcancel').onclick=()=>{cancelled=true;say('Recording cancelled')};
   recState={mr,stream};
+  if(stkPlan)stkPlan.start();
   mr.start(200);
   const t0=performance.now();
   await new Promise(resolve=>{
@@ -3001,9 +3039,9 @@ $('#focusBtn').onclick=()=>setFocus(!document.body.classList.contains('focus'));
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('focus'))setFocus(false)});
 
 const RIGHT_TABS=['style','smart','canvas','3d','export','video'];
-const LEFT_TABS=['devices','layers','screens'];
+const LEFT_TABS=['devices','layers','screens','emoji'];
 $$('.mtabs button').forEach(b=>b.onclick=()=>{
-  const g=b.dataset.g;document.body.dataset.tab=g;
+  const g=b.dataset.g;document.body.dataset.tab=g;if(g==='emoji')stkInit();
   if(RIGHT_TABS.includes(g))document.body.dataset.rtab=g;
   if(LEFT_TABS.includes(g))document.body.dataset.ltab=g;
   $$('.rtabs button[data-ltab]').forEach(x=>press(x,x.dataset.ltab===document.body.dataset.ltab));
@@ -3018,7 +3056,7 @@ $$('.rtabs button').forEach(b=>b.onclick=()=>{
   $('.panel-right').scrollTop=0;
 });
 $$('.rtabs button[data-ltab]').forEach(b=>b.onclick=()=>{
-  const g=b.dataset.ltab;document.body.dataset.ltab=g;document.body.dataset.tab=g;
+  const g=b.dataset.ltab;document.body.dataset.ltab=g;document.body.dataset.tab=g;if(g==='emoji')stkInit();
   $$('.rtabs button[data-ltab]').forEach(x=>press(x,x.dataset.ltab===g));
   $$('.mtabs button').forEach(x=>press(x,x.dataset.g===g));
   $('.panel-left').scrollTop=0;
@@ -3045,6 +3083,7 @@ addEventListener('keydown',e=>{
   const typing=e.target.tagName==='INPUT';
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
   if(typing)return;
+  if((e.key==='Delete'||e.key==='Backspace')&&S.stkSel>=0){e.preventDefault();stkDelete();return}
   const k=e.key.toLowerCase();
   if(k==='0'){setView(1,0,0);return}
   if(k==='escape'&&LIVESITE.on){stopLive();return}
@@ -3062,6 +3101,220 @@ $('#installApp').onclick=async()=>{
   if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;deferredPrompt=null;say(r.outcome==='accepted'?'Installing Suum':'Install cancelled');return}
   say('Use your browser menu → Install app / Add to Home screen');
 };
+
+/* ==========================================================================
+   EMOJI STICKERS — animated icons with sound from Jiggicons (https://jiggicons.com).
+   Only the 80 free icons are used, loaded at run time from the pinned official npm
+   package, so the icons are not copied into this repository. Motion + sound by Jiggicons.
+   ========================================================================== */
+const JG_VER='0.1.1',JG_BASE='https://cdn.jsdelivr.net/npm/jiggicons@'+JG_VER;
+const STK_SET=[
+ ['Reactions',[['emoji','#FFC83D'],['emoji-laugh','#FFB020'],['heart','#FF4D6D'],['star','#FFC83D'],['ghost','#B8A9FF'],['eye','#5CC8FF'],['handshake','#FFB27A'],['flash','#FFD23F'],['diamond','#5CE1E6'],['lightbulb','#FFD84D']]],
+ ['Celebrate',[['confetti','#FF7AC6'],['balloon','#FF5C5C'],['gift','#FF6B9A'],['trophy','#FFC83D'],['rocket','#FF7A45'],['bell','#FFC83D'],['megaphone','#FF8A5C'],['music-note-2','#8A7CFF'],['ice-cream','#FF9EC7'],['campfire','#FF8A3D']]],
+ ['Fun',[['camera','#9AA5B1'],['headphones','#7C8CFF'],['key','#FFC83D'],['puzzle-piece','#4CD6A4'],['palette','#FF8A5C'],['bot','#6BE3FF'],['weather-moon','#BFC8FF'],['leaf','#4CD67A'],['beach','#FFB84C'],['parachute','#FF6B6B']]]
+];
+const STK_DEF=new Map();STK_SET.forEach(([,l])=>l.forEach(([id,c])=>STK_DEF.set(id,{c,name:id.replace(/-2$/,'').replace(/-/g,' ').replace(/^./,m=>m.toUpperCase())})));
+const STK_VARS=['outline','solid','duotone','glass'];
+const JG={retryAt:0,rt:null,icons:new Map(),stat:new Map(),frames:new Map(),fdone:new Map(),sound:true,vol:.7,variant:'solid',uid:1,built:false,warned:false};
+try{const o=JSON.parse(localStorage.getItem('fk-stk')||'null');if(o){JG.sound=o.sound!==false;JG.vol=typeof o.vol==='number'?o.vol:.7;if(STK_VARS.includes(o.variant))JG.variant=o.variant}}catch(_){}
+const STK_RT=new Map();
+const stkSave=()=>{try{localStorage.setItem('fk-stk',JSON.stringify({sound:JG.sound,vol:JG.vol,variant:JG.variant}))}catch(_){}};
+const jgWarn=()=>{if(!JG.warned){JG.warned=true;say('Emoji library couldn’t load — it needs a connection the first time')}};
+const jgRuntime=()=>JG.rt||(JG.rt=import(JG_BASE+'/src/index.js').then(m=>{m.setVolume(JG.vol);return m}).catch(e=>{JG.rt=null;jgWarn();throw e}));
+const jgIcon=id=>{let p=JG.icons.get(id);if(!p){p=import(JG_BASE+'/icons/'+id+'.js').then(m=>m.default).catch(e=>{JG.icons.delete(id);jgWarn();throw e});JG.icons.set(id,p)}return p};
+const jgSvg=(rt,icon,variant,color,size,uid)=>rt.toSvg(icon,{variant,size,uid}).replace('<svg ','<svg style="color:'+color+'" ');
+const jgImg=svg=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+const stkKey=st=>st.id+'|'+st.v+'|'+st.c;
+
+/* still image of a sticker (cached) */
+function stkStatic(st){
+  const key=stkKey(st);let e=JG.stat.get(key);
+  if(!e){
+    if(performance.now()<JG.retryAt)return Promise.resolve();
+    e={img:null,p:null};JG.stat.set(key,e);
+    e.p=Promise.all([jgRuntime(),jgIcon(st.id)]).then(([rt,ic])=>jgImg(jgSvg(rt,ic,st.v,st.c,256,'s'))).then(im=>{e.img=im;render();return e}).catch(()=>{JG.stat.delete(key);JG.retryAt=performance.now()+15000});
+  }
+  return e.p;
+}
+const stkImgOf=st=>{const e=JG.stat.get(stkKey(st));if(e&&e.img)return e.img;if(!e)stkStatic(st);return null};
+
+/* real Jiggicons motion, sampled into frames: the library animates SVG layers with the Web
+   Animations API, so we run it paused, step its clock, and freeze each pose into an image */
+function stkFramesOf(st){
+  const key=stkKey(st);let p=JG.frames.get(key);if(p)return p;
+  p=(async()=>{
+    const[rt,ic]=await Promise.all([jgRuntime(),jgIcon(st.id)]);
+    const host=document.createElement('div');host.setAttribute('aria-hidden','true');
+    host.style.cssText='position:fixed;left:-9999px;top:0;width:256px;height:256px;pointer-events:none';
+    host.innerHTML=jgSvg(rt,ic,st.v,st.c,256,'f');document.body.append(host);
+    try{
+      rt.play(host,ic,{variant:st.v,sound:false});
+      const anims=host.getAnimations({subtree:true});
+      if(!anims.length)return null;
+      const ms=ic.motion.ms,N=Math.max(8,Math.min(32,Math.round(ms/36)));
+      const svgEl=host.querySelector('svg'),layers=[...svgEl.querySelectorAll('[data-rig-layer]')],imgs=[];
+      for(let k=0;k<=N;k++){
+        anims.forEach(a=>{a.pause();a.currentTime=ms*k/N});
+        const clone=svgEl.cloneNode(true),cl=[...clone.querySelectorAll('[data-rig-layer]')];
+        layers.forEach((el,j)=>{const cs=getComputedStyle(el);cl[j].style.transform=cs.transform;cl[j].style.opacity=cs.opacity});
+        imgs.push(jgImg(new XMLSerializer().serializeToString(clone)));
+      }
+      const out={ms,imgs:await Promise.all(imgs)};JG.fdone.set(key,out);return out;
+    }finally{host.remove()}
+  })().catch(()=>{JG.frames.delete(key);return null});
+  JG.frames.set(key,p);return p;
+}
+const stkReady=()=>Promise.all(S.stickers.flatMap(st=>[stkStatic(st),stkFramesOf(st)])).catch(()=>{});
+
+async function stkSound(st){
+  if(!JG.sound||JG.vol<=0)return;
+  try{const[rt,ic]=await Promise.all([jgRuntime(),jgIcon(st.id)]);rt.playSound(ic,{variant:st.v})}catch(_){}
+}
+function stkLoop(){
+  if(stkLoop.raf)return;
+  const step=()=>{
+    stkLoop.raf=0;let live=false;const now=performance.now();
+    STK_RT.forEach(r=>{const f=r.k&&JG.fdone.get(r.k);if(now-r.t0<(f?f.ms:700))live=true});
+    render();if(live)stkLoop.raf=requestAnimationFrame(step);
+  };
+  stkLoop.raf=requestAnimationFrame(step);
+}
+/* play a sticker's motion (and sound) in the scene */
+function stkTrigger(i,withSound=true){
+  const st=S.stickers[i];if(!st)return;
+  STK_RT.set(st.u,{t0:performance.now(),k:stkKey(st)});
+  if(withSound)stkSound(st);
+  stkFramesOf(st).then(()=>{const r=STK_RT.get(st.u);if(r)r.t0=Math.min(r.t0+60,performance.now());stkLoop()});
+  stkLoop();
+}
+function stkRect(st,W,H){const px=Math.max(W*st.s/100,W*.03);return{cx:st.x*W,cy:st.y*H,px}}
+function hitSticker(p){
+  const W=cv.width,H=cv.height;
+  for(let i=S.stickers.length-1;i>=0;i--){
+    const st=S.stickers[i],r=stkRect(st,W,H),a=-st.r*Math.PI/180,dx=p.x-r.cx,dy=p.y-r.cy;
+    const lx=dx*Math.cos(a)-dy*Math.sin(a),ly=dx*Math.sin(a)+dy*Math.cos(a);
+    if(Math.abs(lx)<=r.px/2&&Math.abs(ly)<=r.px/2)return i;
+  }
+  return -1;
+}
+function drawStickers(c,W,H,K){
+  const m=S.vid,now=performance.now();
+  S.stickers.forEach((st,i)=>{
+    const px=W*st.s/100;let img=stkImgOf(st),sc=1,age=-1;
+    const fr=JG.fdone.get(stkKey(st));if(!fr&&m.active)stkFramesOf(st);
+    if(m.active){const e=.1+.07*i;age=(m.progress-e)*m.dur*1000;if(m.stagger&&age<0)return}
+    else{const r=STK_RT.get(st.u);if(r)age=now-r.t0}
+    if(fr&&age>=0&&age<fr.ms){img=fr.imgs[Math.min(fr.imgs.length-1,Math.floor(age/fr.ms*(fr.imgs.length-1)))]||img}
+    else if(!fr&&age>=0&&age<520){const a=age/520;sc=1+.28*Math.exp(-5*a)*Math.sin(15*a)}
+    if(!img)return;
+    c.save();c.translate(st.x*W,st.y*H);c.rotate(st.r*Math.PI/180);c.scale(sc,sc);
+    c.shadowColor='rgba(0,0,0,.35)';c.shadowBlur=px*.12*K;c.shadowOffsetY=px*.05*K;
+    c.drawImage(img,-px/2,-px/2,px,px);c.restore();
+  });
+}
+function drawStickerSel(ctx,W,H){
+  const st=S.stickers[S.stkSel];if(!st)return;
+  const r=stkRect(st,W,H),pad=W*.01;
+  ctx.save();ctx.translate(r.cx,r.cy);ctx.rotate(st.r*Math.PI/180);
+  ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,W*.0012);ctx.setLineDash([W*.01,W*.008]);
+  ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;
+  ctx.strokeRect(-r.px/2-pad,-r.px/2-pad,r.px+pad*2,r.px+pad*2);ctx.restore();
+}
+
+/* ---- scene editing ---- */
+async function stkAdd(id){
+  const def=STK_DEF.get(id);if(!def)return;
+  const st={u:JG.uid++,id,v:JG.variant,c:def.c,x:+(.5+(Math.random()-.5)*.18).toFixed(3),y:+(.5+(Math.random()-.5)*.18).toFixed(3),s:14,r:0};
+  S.stickers.push(st);S.stkSel=S.stickers.length-1;sync();commit();say('Added '+def.name);
+  try{await Promise.all([stkStatic(st),stkFramesOf(st)])}catch(_){}
+  const i=S.stickers.indexOf(st);if(i>=0)stkTrigger(i);
+}
+function stkDelete(){
+  if(S.stkSel<0)return;S.stickers.splice(S.stkSel,1);S.stkSel=-1;sync();commit();render();say('Sticker removed');
+}
+function stkEdit(patch,final){
+  const st=S.stickers[S.stkSel];if(!st)return;Object.assign(st,patch);
+  if('v' in patch||'c' in patch){stkStatic(st);stkFramesOf(st)}
+  stkSyncUI();render();if(final)commit();
+}
+let STKDRAG=null;
+
+/* ---- the Emoji tab ---- */
+function stkPaint(){
+  $$('#stkGrid .stk').forEach(b=>{
+    const id=b.dataset.id,def=STK_DEF.get(id),p=JG.icons.get(id);if(!p)return;
+    Promise.all([jgRuntime(),p]).then(([rt,ic])=>{b.innerHTML=jgSvg(rt,ic,JG.variant,def.c,30,'p'+id);b.classList.remove('skel');b._ic=ic}).catch(()=>{});
+  });
+}
+function stkInit(){
+  if(JG.built)return;JG.built=true;
+  const grid=$('#stkGrid');grid.innerHTML='';
+  STK_SET.forEach(([g,list])=>{
+    const lab=document.createElement('div');lab.className='glabel';lab.textContent=g;grid.append(lab);
+    const row=document.createElement('div');row.className='stk-grid';
+    list.forEach(([id])=>{
+      const b=document.createElement('button');b.type='button';b.className='stk skel';b.dataset.id=id;b.title=STK_DEF.get(id).name;b.setAttribute('aria-label','Add '+STK_DEF.get(id).name);
+      b.style.setProperty('--c',STK_DEF.get(id).c);
+      const play=()=>{if(b._ic&&JG.rt)JG.rt.then(rt=>rt.play(b,b._ic,{variant:JG.variant,sound:JG.sound}))};
+      b.addEventListener('pointerenter',play);b.addEventListener('focus',()=>{if(b.matches(':focus-visible'))play()});
+      b.onclick=()=>stkAdd(id);
+      row.append(b);jgIcon(id).catch(()=>{});
+    });
+    grid.append(row);
+  });
+  Promise.all(STK_SET.flatMap(([,l])=>l.map(([id])=>jgIcon(id).catch(()=>null)))).then(stkPaint);
+}
+function stkSyncUI(){
+  if(!$('#stkEdit'))return;
+  const st=S.stickers[S.stkSel];
+  $('#stkEdit').hidden=!st;$('#stkCount').textContent=S.stickers.length;
+  if(st){
+    $('#stkName').textContent=(STK_DEF.get(st.id)||{name:st.id}).name;
+    [['stkSize',st.s,'%'],['stkRot',st.r,'°']].forEach(([id,v,su])=>{const el=$('#'+id);el.value=Math.round(v);$('#'+id+'Val').textContent=Math.round(v)+su;fillRange(el)});
+    $('#stkColor').value=st.c;
+  }
+  const cur=st?st.v:JG.variant;
+  $$('#stkVar button').forEach((b,i)=>b.setAttribute('aria-pressed',STK_VARS[i]===cur?'true':'false'));
+  const sb=$('#stkSound');sb.classList.toggle('on',JG.sound);sb.textContent=JG.sound?'Sound on':'Sound off';
+  $('#stkVol').value=Math.round(JG.vol*100);$('#stkVolVal').textContent=Math.round(JG.vol*100)+'%';fillRange($('#stkVol'));
+  if(S.stickers.length)stkReady().then(()=>render());
+}
+seg($('#stkVar'),['Outline','Solid','Duotone','Glass'],i=>{
+  JG.variant=STK_VARS[i];stkSave();
+  if(S.stickers[S.stkSel])stkEdit({v:STK_VARS[i]},true);else stkSyncUI();
+  stkPaint();
+});
+$('#stkSound').onclick=()=>{JG.sound=!JG.sound;stkSave();if(JG.rt)JG.rt.then(rt=>rt.setVolume(JG.sound?JG.vol:0));stkSyncUI();say(JG.sound?'Emoji sound on':'Emoji sound off')};
+$('#stkVol').oninput=e=>{JG.vol=+e.target.value/100;if(JG.rt)JG.rt.then(rt=>rt.setVolume(JG.sound?JG.vol:0));stkSyncUI()};
+$('#stkVol').onchange=stkSave;
+$('#stkSize').oninput=e=>stkEdit({s:+e.target.value});$('#stkSize').onchange=commit;
+$('#stkRot').oninput=e=>stkEdit({r:+e.target.value});$('#stkRot').onchange=commit;
+$('#stkColor').oninput=e=>stkEdit({c:e.target.value});$('#stkColor').onchange=commit;
+$('#stkReplay').onclick=()=>{if(S.stkSel>=0)stkTrigger(S.stkSel)};
+$('#stkDup').onclick=()=>{const st=S.stickers[S.stkSel];if(!st)return;const n={...st,u:JG.uid++,x:Math.min(.95,st.x+.05),y:Math.min(.95,st.y+.05)};S.stickers.push(n);S.stkSel=S.stickers.length-1;sync();commit();stkTrigger(S.stkSel)};
+$('#stkDel').onclick=stkDelete;
+$('#stkClear').onclick=()=>{S.stickers=[];S.stkSel=-1;sync();commit();render();say('All stickers cleared')};
+/* ids must stay unique after loading a saved scene */
+function stkFix(){let mx=0;S.stickers.forEach(s=>{if(!s.u)s.u=0;mx=Math.max(mx,s.u)});S.stickers.forEach(s=>{if(!s.u)s.u=++mx});JG.uid=Math.max(JG.uid,mx+1)}
+
+/* sticker sounds in recorded video: render each cue and schedule it into the recorder's audio graph */
+async function stkAudioPlan(dur){
+  if(!S.stickers.length||!JG.sound||JG.vol<=0)return null;
+  const[aud,foley]=await Promise.all([import(JG_BASE+'/src/audio.js'),import(JG_BASE+'/src/engine/library-foley.mjs')]);
+  const AC=window.AudioContext||window.webkitAudioContext;
+  audioCtx=audioCtx||new AC();audioDest=audioDest||audioCtx.createMediaStreamDestination();
+  await audioCtx.resume();
+  const items=[];
+  for(let i=0;i<S.stickers.length;i++){
+    const st=S.stickers[i],ic=await jgIcon(st.id),s=aud.renderStereo(ic,st.v);
+    const buf=audioCtx.createBuffer(2,s.left.length,foley.soundRate);buf.copyToChannel(s.left,0);buf.copyToChannel(s.right,1);
+    items.push({buf,at:(.1+.07*i)*dur/1000});
+  }
+  return{start(){
+    const base=audioCtx.currentTime+.02;
+    items.forEach(it=>{const src=audioCtx.createBufferSource(),g=audioCtx.createGain();g.gain.value=Math.min(1,JG.vol*1.4);src.buffer=it.buf;src.connect(g);g.connect(audioDest);src.start(base+it.at)});
+  }};
+}
 
 /* ==========================================================================
    LANGUAGE — English / ខ្មែរ. Visible labels are swapped in place from a dictionary,
@@ -3123,6 +3376,10 @@ const KM={
  'All angles reset':'បានកំណត់មុំទាំងអស់ឡើងវិញ','Custom ratio':'សមាមាត្រផ្ទាល់ខ្លួន','Live site closed':'បានបិទគេហទំព័រផ្ទាល់','Editor restored':'បានត្រឡប់ទៅកម្មវិធីកែសម្រួល',
  'Full-screen preview — press F or Esc to exit':'មើលពេញអេក្រង់ — ចុច F ឬ Esc ដើម្បីចេញ','Rendering…':'កំពុងបង្កើត…',
  'Ready — tap a device to select it, then drop screenshots or pick a live screen.':'រួចរាល់ — ចុចលើឧបករណ៍ដើម្បីជ្រើស បន្ទាប់មកទម្លាក់រូបថតអេក្រង់ ឬជ្រើសអេក្រង់ផ្ទាល់។',
+ 'Emoji':'អីម៉ូជី','Emoji stickers':'ស្ទីកគ័រអីម៉ូជី','Sound on':'បើកសំឡេង','Sound off':'បិទសំឡេង','Sound':'សំឡេង','Volume':'កម្រិតសំឡេង','Replay':'ចាក់ឡើងវិញ',
+ 'Delete':'លុប','Outline':'គ្រោង','Solid':'ពេញ','Duotone':'ពីរសម្បុរ','Glass':'កញ្ចក់','Size':'ទំហំ','Reactions':'ប្រតិកម្ម','Celebrate':'អបអរសាទរ','Fun':'សប្បាយ','Clear stickers':'សម្អាតស្ទីកគ័រ',
+ 'Sticker removed':'បានលុបស្ទីកគ័រ','All stickers cleared':'បានសម្អាតស្ទីកគ័រទាំងអស់','Emoji sound on':'បានបើកសំឡេងអីម៉ូជី','Emoji sound off':'បានបិទសំឡេងអីម៉ូជី',
+ 'Open this tab to load the emoji.':'បើកផ្ទាំងនេះដើម្បីផ្ទុកអីម៉ូជី។','Icon style':'ស្ទីលរូបតំណាង','Sticker colour':'ពណ៌ស្ទីកគ័រ',
  'Device applied':'បានអនុវត្តឧបករណ៍','layout':'ប្លង់','nudge':'រុញ','focus':'មើលពេញ','undo':'មិនធ្វើវិញ','Finish applied to all devices':'បានអនុវត្តពណ៌ទៅគ្រប់ឧបករណ៍','Auto-styled from screenshot colours':'បានរចនាស្វ័យប្រវត្តិតាមពណ៌រូបថត'
 };
 const KM_GROUP={'Phones':'ទូរស័ព្ទ','Foldables':'ទូរស័ព្ទបត់','Tablets':'ថេប្លេត','Computers':'កុំព្យូទ័រ','Wearables':'ឧបករណ៍ពាក់','Web':'គេហទំព័រ'};
@@ -3133,6 +3390,8 @@ const KM_RULES=[
  [/^Showing on device (\d+)$/,(m)=>'កំពុងបង្ហាញលើឧបករណ៍ '+m[1]],
  [/^Screen on device (\d+)$/,(m)=>'អេក្រង់លើឧបករណ៍ '+m[1]],
  [/^· device (\d+)$/i,(m)=>'· ឧបករណ៍ '+m[1]],
+ [/^Added (.+)$/,(m)=>'បានបន្ថែម '+m[1]],
+ [/^Selected ·$/,()=>'បានជ្រើស ·'],
  [/^Look: (.+)$/,(m)=>'រូបរាង៖ '+m[1]],
  [/^Finish —$/,()=>'ពណ៌ —'],
  [/^Custom (#[0-9A-F]{6})$/i,(m)=>'ពណ៌ផ្ទាល់ខ្លួន '+m[1]],
