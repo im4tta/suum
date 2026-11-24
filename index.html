@@ -643,7 +643,7 @@ body.focus .stage-hint{opacity:.6}
         <div class="s-head" style="margin-top:18px"><div class="s-title">Scene templates</div></div>
         <div class="grid3" id="templates"></div>
 
-        <div class="s-head" style="margin-top:18px"><div class="s-title">Saved scenes</div><button class="tiny-btn" id="saveScene">Save current</button></div>
+        <div class="s-head" style="margin-top:18px"><div class="s-title">Saved scenes</div><div style="display:flex;gap:5px"><button class="tiny-btn" id="newScene" type="button" title="Clear the autosaved scene and start blank">New scene</button><button class="tiny-btn" id="saveScene">Save current</button></div></div>
         <div id="sceneList"></div>
         <div class="grid2" style="margin-top:7px"><button class="tiny-btn" id="shareScene">Copy share link</button><button class="tiny-btn" id="zipAll">ZIP all images</button></div>
         <button class="tiny-btn" id="installApp" style="width:100%;margin-top:6px">Install app / share into Suum</button>
@@ -672,6 +672,14 @@ body.focus .stage-hint{opacity:.6}
 
         <div class="s-head" style="margin-top:18px"><div class="s-title">Screen crop / pan</div></div>
         <div class="slider-row"><div class="slider-top"><label>Zoom</label><output id="imgZoomVal">100%</output></div><input type="range" id="imgZoom" min="100" max="300" value="100"></div>
+        <div class="vidlabels" style="margin-top:12px">Crop edges</div>
+        <div class="slider-row"><div class="slider-top"><label for="cropT">Top</label><output id="cropTVal">0%</output></div><input type="range" id="cropT" min="0" max="40" value="0"></div>
+        <div class="slider-row"><div class="slider-top"><label for="cropB">Bottom</label><output id="cropBVal">0%</output></div><input type="range" id="cropB" min="0" max="40" value="0"></div>
+        <div class="slider-row"><div class="slider-top"><label for="cropL">Left</label><output id="cropLVal">0%</output></div><input type="range" id="cropL" min="0" max="40" value="0"></div>
+        <div class="slider-row"><div class="slider-top"><label for="cropR">Right</label><output id="cropRVal">0%</output></div><input type="range" id="cropR" min="0" max="40" value="0"></div>
+        <div class="vidlabels" style="margin-top:12px">Status bar</div>
+        <div class="seg" id="sbar" role="group" aria-label="Status bar"></div>
+        <div class="slider-row" style="margin-top:12px"><div class="slider-top"><label for="scorner">Screen corners</label><output id="scornerVal">100%</output></div><input type="range" id="scorner" min="50" max="150" value="100"></div>
         <div class="slider-row"><div class="slider-top"><label>Offset X</label><output id="imgXVal">0%</output></div><input type="range" id="imgX" min="-50" max="50" value="0"></div>
         <div class="slider-row"><div class="slider-top"><label>Offset Y</label><output id="imgYVal">0%</output></div><input type="range" id="imgY" min="-50" max="50" value="0"></div>
         <button class="tiny-btn" id="imgToolToggle" style="width:100%">Drag-inside-screen mode: OFF</button>
@@ -727,6 +735,16 @@ body.focus .stage-hint{opacity:.6}
           <button class="btn-ghost" id="cp" title="Copy scene image to clipboard" aria-label="Copy scene image to clipboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy</span></button>
         </div>
         <p class="note">PNG, JPG or WebP up to 3×. Clipboard uses on-screen resolution. Live screens render at the exact moment you export.</p>
+
+        <div class="s-head" style="margin-top:20px"><div class="s-title">Store screenshots</div></div>
+        <button class="chip" id="storeOn" type="button"><span class="swdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>Show headline in exports</button>
+        <input class="vinput" id="storeTitle" placeholder="Headline" aria-label="Store headline" style="margin-top:8px">
+        <input class="vinput" id="storeSub" placeholder="Subtitle (optional)" aria-label="Store subtitle">
+        <div class="seg" id="storePos" role="group" aria-label="Headline position"></div>
+        <div class="vidlabels" style="margin-top:12px">Sizes to export</div>
+        <div class="chips" id="storeSizes"></div>
+        <button class="btn-ghost" id="storeZip" type="button" style="width:100%;margin-top:10px">Export sizes (ZIP)</button>
+        <p class="note">Renders the scene once per selected size with your headline, ready for store listings. Check each store’s current requirements before uploading.</p>
 
         <p class="note">Tip: copy a scene, then use Paste image in the Screens tab to place it on a device.</p>
       </section>
@@ -1006,7 +1024,7 @@ const LIVE=[
 /* ==========================================================================
    STATE
    ========================================================================== */
-const slot=(dev='i16p')=>({dev,finish:0,custom:null,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
+const slot=(dev='i16p')=>({dev,finish:0,custom:null,crop:null,sbar:0,rsx:1,img:null,x:0,y:0,s:1,r:0,live:'clock',ix:0,iy:0,iscale:1,hidden:0,ry:0,rx:0,rz:0});
 function preset(n){
   const sets={
     1:[slot('i16p')],
@@ -1020,6 +1038,7 @@ const S={
   slots:preset(1), n:1, sel:0, ratio:1, fit:0, dark:0, shadow:40,
   a:BGS[0][0], b:BGS[0][1], bg:0, tr:0, fmt:'png', k:2,
   liveOn:true, images:[], armed:null, boxes:[],
+  store:{on:0,title:'Your idea, framed.',sub:'',pos:0,sizes:[0,3,4]},
   notes:[], noteSel:-1, stickers:[], stkSel:-1, imgTool:null, toolColor:'#FF5C35',
   d3:{on:0,depth:0,mode:'yaw'},
   bgMedia:{type:'none',url:'',blur:0,tilt:0,reflect:0}, customFrame:null,
@@ -1194,13 +1213,17 @@ function drawDevice(c,d,sl,f,K,t){
   }
 
   /* screen */
-  c.save();c.beginPath();c.roundRect(screenX,screenY,sw,shh,d.k==='browser'?[0,0,d.rs,d.rs]:d.rs);c.clip();
+  const rr=d.rs*(sl.rsx||1);
+  c.save();c.beginPath();c.roundRect(screenX,screenY,sw,shh,d.k==='browser'?[0,0,rr,rr]:rr);c.clip();
   const img=sl.img!=null?S.images[sl.img]:null;
   if(img){
-    const iw=img.img.naturalWidth,ih=img.img.naturalHeight,s=(S.fit?Math.min:Math.max)(sw/iw,shh/ih)*(sl.iscale||1);
+    const iw=img.img.naturalWidth,ih=img.img.naturalHeight,cr=sl.crop||[0,0,0,0];
+    const cx0=iw*cr[3],cy0=ih*cr[0],cw=Math.max(8,iw*(1-cr[1]-cr[3])),ch=Math.max(8,ih*(1-cr[0]-cr[2]));
+    const s=(S.fit?Math.min:Math.max)(sw/cw,shh/ch)*(sl.iscale||1);
     c.imageSmoothingQuality='high';
-    c.drawImage(img.img,screenX+(sw-iw*s)/2+(sl.ix||0)*sw,screenY+(shh-ih*s)/2+(sl.iy||0)*shh,iw*s,ih*s);
+    c.drawImage(img.img,cx0,cy0,cw,ch,screenX+(sw-cw*s)/2+(sl.ix||0)*sw,screenY+(shh-ch*s)/2+(sl.iy||0)*shh,cw*s,ch*s);
   } else liveContent(c,screenX,screenY,sw,shh,sl.live,t,dk);
+  if(sl.sbar&&d.k!=='browser'&&d.k!=='laptop'&&d.k!=='monitor')drawStatusBar(c,screenX,screenY,sw,sl.sbar,d);
 
   /* details on screen */
   if(d.fold){const gr=c.createLinearGradient(screenX+sw/2-12,0,screenX+sw/2+12,0);gr.addColorStop(0,'transparent');gr.addColorStop(.5,'rgba(0,0,0,.30)');gr.addColorStop(1,'transparent');c.fillStyle=gr;c.fillRect(screenX+sw/2-12,screenY,24,shh)}
@@ -1231,6 +1254,25 @@ function drawDevice(c,d,sl,f,K,t){
   c.restore();
 }
 
+/* generic status bar (time, signal, wifi, battery) drawn over the top of a phone or tablet screen */
+function drawStatusBar(c,x,y,w,mode,d){
+  const col=mode===2?'#111214':'#ffffff',island=d.cam==='island',fs=Math.max(10,w*(d.k==='tab'?.018:.04));
+  const cy=y+fs*(island?1.55:1.2),pad=w*(d.k==='tab'?.03:island?.085:.05);
+  c.save();c.fillStyle=col;c.strokeStyle=col;c.lineCap='round';c.lineJoin='round';
+  c.font='600 '+fs*1.12+'px Inter,system-ui,sans-serif';c.textBaseline='middle';c.textAlign='left';
+  c.fillText('9:41',x+pad+(island?w*.025:0),cy);
+  let rx=x+w-pad;const bw=fs*1.95,bh=fs*.92;
+  c.globalAlpha=.5;c.lineWidth=fs*.09;c.beginPath();c.roundRect(rx-bw,cy-bh/2,bw,bh,bh*.3);c.stroke();
+  c.fillRect(rx+fs*.07,cy-bh*.17,fs*.1,bh*.34);c.globalAlpha=1;
+  c.beginPath();c.roundRect(rx-bw+fs*.13,cy-bh/2+fs*.13,(bw-fs*.26)*.78,bh-fs*.26,bh*.18);c.fill();
+  rx-=bw+fs*.6;
+  c.lineWidth=fs*.13;const wx=rx-fs*.55,wy=cy+fs*.34;
+  [.9,.58,.28].forEach(r=>{c.beginPath();c.arc(wx,wy,fs*r,-Math.PI*.78,-Math.PI*.22);c.stroke()});
+  c.beginPath();c.arc(wx,wy-fs*.02,fs*.09,0,7);c.fill();
+  rx-=fs*1.45;
+  for(let i=0;i<4;i++){const h=fs*(.32+.2*i),bx=rx-(4-i)*fs*.3;c.beginPath();c.roundRect(bx,cy+fs*.45-h,fs*.2,h,fs*.05);c.fill()}
+  c.restore();
+}
 function motionOf(p,W,H){
   const m=S.vid;
   if(!m.active)return null;
@@ -1790,6 +1832,7 @@ function drawScene(c,W,H,K,t){
     const v2=c.createRadialGradient(W/2,H/2,Math.min(W,H)*.4,W/2,H/2,Math.max(W,H)*.8);v2.addColorStop(0,'transparent');v2.addColorStop(1,'rgba(0,0,0,.26)');c.fillStyle=v2;c.fillRect(0,0,W,H);
   }
   const mv=motionOf(p,W,H);
+  const STA=storeArea(W,H);
   S.boxes=[];
   c.save();
   if(mv){c.translate(W/2+mv.x,H/2+mv.y);c.rotate(mv.rot*Math.PI/180);c.scale(mv.sc,mv.sc);c.translate(-W/2,-H/2)}
@@ -1807,8 +1850,8 @@ function drawScene(c,W,H,K,t){
     list.forEach(o=>{
       const i=o.i,sl=S.slots[i],d=DEV.find(z=>z.id===sl.dev)||DEV[0],g=geo(d);
       const bw=S.land?g.H:g.W,bh=S.land?g.W:g.H;
-      const f=Math.min(W*.78/bw,H*.78/bh)*sl.s;
-      const cx=W/2+sl.x*W,cy=H/2+sl.y*H;
+      const f=Math.min(STA.w*STA.fill/bw,STA.h*STA.fill/bh)*sl.s;
+      const cx=STA.cx+sl.x*STA.w,cy=STA.cy+sl.y*STA.h;
       const al=m.active&&m.stagger?Math.max(0,Math.min(1,(p-i*.07)/.28)):null;
       const box=drawDevice3D(c,W,H,K,t,sl,d,g,f,cx,cy,al);
       S.boxes[i]={cx:box.cx,cy:box.cy,w:box.w,h:box.h,a:0};
@@ -1819,8 +1862,8 @@ function drawScene(c,W,H,K,t){
     if(sl.hidden){S.boxes[i]=null;return}
     const d=DEV.find(z=>z.id===sl.dev)||DEV[0], g=geo(d);
     const bw=S.land?g.H:g.W, bh=S.land?g.W:g.H;
-    const f=Math.min(W*.78/bw,H*.78/bh)*sl.s;
-    const cx=W/2+sl.x*W, cy=H/2+sl.y*H, rot=sl.r*Math.PI/180;
+    const f=Math.min(STA.w*STA.fill/bw,STA.h*STA.fill/bh)*sl.s;
+    const cx=STA.cx+sl.x*STA.w, cy=STA.cy+sl.y*STA.h, rot=sl.r*Math.PI/180;
     const a=rot+(S.land?-Math.PI/2:0);
     c.save();c.translate(cx,cy);c.rotate(rot);
     if(S.land)c.rotate(-Math.PI/2);
@@ -1845,7 +1888,7 @@ function drawScene(c,W,H,K,t){
     const gf=c.createLinearGradient(0,H*.6,0,H);gf.addColorStop(0,'transparent');gf.addColorStop(1,S.a);
     c.fillStyle=gf;c.fillRect(0,H*.6,W,H*.4);
   }
-  drawNotes(c,W,H);drawStickers(c,W,H,K);
+  drawStoreText(c,W,H);drawNotes(c,W,H);drawStickers(c,W,H,K);
   c.restore();
   if(m.active&&m.text){
     const al=m.loop?1:Math.max(0,Math.min(1,p/.1,(1-p)/.1));
@@ -1908,12 +1951,21 @@ function render(){
   $('#abRes').textContent=S.target?S.target[0]+' × '+S.target[1]:(w*S.k)+' × '+(h*S.k);
   placeLive();
 }
-function tick(t){requestAnimationFrame(tick);if(!S.liveOn)return;if(t-lastFrame<33)return;lastFrame=t;render()}
+const FRAME_MS=matchMedia('(prefers-reduced-motion: reduce)').matches?100:matchMedia('(pointer: coarse)').matches?45:33;
+/* nothing on screen moves when every device shows a screenshot (or is blank) and there is no video backdrop */
+const sceneIdle=()=>!S.vid.active&&S.bgMedia.type!=='video'&&S.slots.every(sl=>sl.hidden||sl.img!=null||sl.live==='off');
+function tick(t){
+  requestAnimationFrame(tick);
+  if(!S.liveOn||document.hidden)return;
+  if(t-lastFrame<(sceneIdle()?500:FRAME_MS))return;
+  lastFrame=t;render();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
 function say(msg){$('#status').textContent=msg;const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2400)}
 
 let hist=[],hi=-1;
-function snap(){return JSON.stringify({stickers:S.stickers.map(s=>({...s})),stkSel:S.stkSel,target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
-function commit(){hist=hist.slice(0,hi+1);hist.push(snap());hi=hist.length-1;histUI()}
+function snap(){return JSON.stringify({store:{...S.store,sizes:[...S.store.sizes]},stickers:S.stickers.map(s=>({...s})),stkSel:S.stkSel,target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
+function commit(){hist=hist.slice(0,hi+1);hist.push(snap());hi=hist.length-1;histUI();autoSoon()}
 function restore(str){const o=JSON.parse(str);Object.assign(S,o);sync();render()}
 function undo(){if(hi>0){hi--;restore(hist[hi]);say('Undone')}}
 function redo(){if(hi<hist.length-1){hi++;restore(hist[hi]);say('Redone')}}
@@ -2290,6 +2342,10 @@ $('#abBody').addEventListener('pointerdown',e=>{
   if(e.target.tagName==='IFRAME'||e.target.closest('.fab'))return;
   if(e.button===1||(VIEW.z>1&&!S.imgTool&&hit(pt(e))<0)){e.preventDefault();VIEW.pan={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y,id:e.pointerId};$('#abBody').classList.add('panning');try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}return}
   const p=pt(e);pointers.set(e.pointerId,p);try{$('#abBody').setPointerCapture(e.pointerId)}catch(_){}
+  if(STKDRAG&&e.pointerId!==STKDRAG.id&&pointers.size===2&&S.stickers[STKDRAG.i]){
+    const st=S.stickers[STKDRAG.i],[a,b]=[...pointers.values()];
+    STKPINCH={s:st.s,r:st.r,d:Math.hypot(a.x-b.x,a.y-b.y)||1,ang:Math.atan2(b.y-a.y,b.x-a.x)};return;
+  }
   if(S.imgTool){placeNote(p);return}
   {const si=hitSticker(p);
    if(si>=0){const st=S.stickers[si];S.stkSel=si;STKDRAG={i:si,id:e.pointerId,x:p.x,y:p.y,ox:st.x,oy:st.y,moved:false};stkSyncUI();stkTrigger(si);render();return}
@@ -2314,6 +2370,13 @@ $('#abBody').addEventListener('pointerdown',e=>{
 $('#abBody').addEventListener('pointermove',e=>{
   if(VIEW.pan&&VIEW.pan.id===e.pointerId){setView(VIEW.z,VIEW.pan.vx+e.clientX-VIEW.pan.x,VIEW.pan.vy+e.clientY-VIEW.pan.y);return}
   const p=pt(e);if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,p);
+  if(STKPINCH&&pointers.size>=2){
+    const st=S.stickers[STKDRAG&&STKDRAG.i],[a,b]=[...pointers.values()];
+    if(st){st.s=Math.max(3,Math.min(60,+(STKPINCH.s*Math.hypot(a.x-b.x,a.y-b.y)/STKPINCH.d).toFixed(1)));
+      let r=STKPINCH.r+(Math.atan2(b.y-a.y,b.x-a.x)-STKPINCH.ang)*180/Math.PI;r=((r+540)%360)-180;st.r=Math.round(r);
+      STKDRAG.moved=true;stkSyncUI();render()}
+    return;
+  }
   if(STKDRAG&&STKDRAG.id===e.pointerId){const st=S.stickers[STKDRAG.i];if(st){const nx=Math.max(0,Math.min(1,STKDRAG.ox+(p.x-STKDRAG.x)/cv.width)),ny=Math.max(0,Math.min(1,STKDRAG.oy+(p.y-STKDRAG.y)/cv.height));if(Math.abs(nx-st.x)+Math.abs(ny-st.y)>0)STKDRAG.moved=true;st.x=+nx.toFixed(4);st.y=+ny.toFixed(4);render()}return}
   if(rotDrag){
     const sl=S.slots[rotDrag.i],dx=(p.x-rotDrag.x)/cv.width*360,dy=(p.y-rotDrag.y)/cv.height*180;
@@ -2343,7 +2406,7 @@ $('#abBody').addEventListener('pointermove',e=>{
     render();
   }
 });
-function endPointer(e){if(STKDRAG&&STKDRAG.id===e.pointerId){const mv=STKDRAG.moved;STKDRAG=null;pointers.delete(e.pointerId);if(mv)commit();return}if(VIEW.pan&&VIEW.pan.id===e.pointerId){VIEW.pan=null;$('#abBody').classList.remove('panning');return}pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
+function endPointer(e){if(STKPINCH){STKPINCH=null;if(STKDRAG){STKDRAG=null;commit()}pointers.delete(e.pointerId);return}if(STKDRAG&&STKDRAG.id===e.pointerId){const mv=STKDRAG.moved;STKDRAG=null;pointers.delete(e.pointerId);if(mv)commit();return}if(VIEW.pan&&VIEW.pan.id===e.pointerId){VIEW.pan=null;$('#abBody').classList.remove('panning');return}pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(drag){drag=null;commit()}if(rotDrag){rotDrag=null;commit()}}
 $('#abBody').addEventListener('pointerup',endPointer);
 $('#abBody').addEventListener('pointercancel',endPointer);
 $('#abBody').addEventListener('dblclick',e=>{const i=hit(pt(e));if(i<0&&VIEW.z!==1){setView(1,0,0);return}if(i>=0){Object.assign(S.slots[i],{x:0,y:0,s:1,r:0});S.sel=i;sync();commit();say('Device '+ (i+1)+' reset')}});
@@ -2453,6 +2516,12 @@ $('#bgFile').onchange=e=>{
     $('#'+id+'Val').textContent=v+suf;fillRange(el);render();
   };fillRange(el);
 });
+[['cropT',0],['cropR',1],['cropB',2],['cropL',3]].forEach(([id,k])=>{
+  const el=$('#'+id);el.oninput=()=>{const sl=S.slots[S.sel];sl.crop=(sl.crop||[0,0,0,0]).slice();sl.crop[k]=+el.value/100;$('#'+id+'Val').textContent=el.value+'%';fillRange(el);render()};el.onchange=commit;fillRange(el);
+});
+$('#scorner').oninput=e=>{S.slots[S.sel].rsx=+e.target.value/100;$('#scornerVal').textContent=e.target.value+'%';fillRange(e.target);render()};
+$('#scorner').onchange=commit;
+seg($('#sbar'),['Off','Light','Dark'],i=>{S.slots[S.sel].sbar=i;sync();commit()});
 $('#addFrame').onclick=()=>$('#frameFile').click();
 $('#frameFile').onchange=e=>{
   const f=e.target.files[0];if(!f)return;
@@ -2550,13 +2619,13 @@ const TEMPLATES=[
 /* scene state / save / load / share */
 function sceneState(){return JSON.stringify({
   slots:S.slots.map(s=>({...s})),n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,land:S.land,shadow:S.shadow,
-  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,target:S.target||null,notes:S.notes,stickers:S.stickers.map(s=>({...s})),keys:S.keys,captions:S.captions,d3:{...S.d3},
+  a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k,target:S.target||null,notes:S.notes,stickers:S.stickers.map(s=>({...s})),store:{...S.store,sizes:[...S.store.sizes]},keys:S.keys,captions:S.captions,d3:{...S.d3},
   vid:{...S.vid,active:0,playing:0,progress:0,playhead:0,t0:0,audio:null},
   bgMedia:{...S.bgMedia,url:S.bgMedia.url},images:S.images.map(i=>({url:i.url,name:i.name}))
 })}
 function restoreState(str){
   const o=JSON.parse(str),imgs=o.images||[];delete o.images;
-  if(!o.stickers)o.stickers=[];o.stkSel=-1;
+  if(!o.stickers)o.stickers=[];o.stkSel=-1;if(!o.store)o.store={on:0,title:'Your idea, framed.',sub:'',pos:0,sizes:[0,3,4]};
   Object.assign(S,o);S.images=[];stkFix();
   return Promise.all(imgs.map(i=>new Promise(r=>{
     const im=new Image();im.onload=()=>r({url:i.url,img:im,name:i.name});im.onerror=()=>r(null);im.src=i.url;
@@ -2702,6 +2771,10 @@ function sync(){
    ['imgX',Math.round((S.slots[S.sel].ix||0)*100),'%'],['imgY',Math.round((S.slots[S.sel].iy||0)*100),'%']].forEach(([id,v,su])=>{
     const el=$('#'+id);if(!el)return;if(+el.value!==v){el.value=v;fillRange(el)}$('#'+id+'Val').textContent=v+su;
   });
+  {const sl=S.slots[S.sel],cr=sl.crop||[0,0,0,0];
+   [['cropT',cr[0]],['cropR',cr[1]],['cropB',cr[2]],['cropL',cr[3]]].forEach(([id,v])=>{const el=$('#'+id),pc=Math.round(v*100);el.value=pc;$('#'+id+'Val').textContent=pc+'%';fillRange(el)});
+   const rc=Math.round((sl.rsx||1)*100);$('#scorner').value=rc;$('#scornerVal').textContent=rc+'%';fillRange($('#scorner'));
+   $$('#sbar button').forEach((b,i)=>b.setAttribute('aria-pressed',i===(sl.sbar||0)?'true':'false'))}
   $('#imgToolToggle').textContent='Drag-inside-screen mode: '+(S.imgDrag?'ON':'OFF');
   $('#d3Toggle').classList.toggle('on',!!S.d3.on);
   $('#d3ToggleText').textContent=S.d3.on?'3D mode is ON':'Enable 3D mode';
@@ -2709,7 +2782,7 @@ function sync(){
   [['d3Yaw',sl3.ry||0,'°'],['d3Pitch',sl3.rx||0,'°'],['d3Roll',sl3.rz||0,'°'],['d3Depth',S.d3.depth,'%']].forEach(([id,v,su])=>{
     const el=$('#'+id);if(!el)return;if(+el.value!==v){el.value=v;fillRange(el)}$('#'+id+'Val').textContent=v+su;
   });
-  syncSliders();renderShots();renderLayers();renderKeys();renderQueue();stkSyncUI();render();
+  syncSliders();renderShots();renderLayers();renderKeys();renderQueue();stkSyncUI();storeSync();render();
 }
 
 async function blobOf(){await stkReady();return new Promise(r=>{
@@ -2875,10 +2948,13 @@ function togglePreview(){
   S.vid.active=1;S.vid.playing=1;
   S.vid.t0=performance.now()-S.vid.playhead*S.vid.dur*1000;
   if(audioEl&&S.vid.audio){audioEl.currentTime=S.vid.playhead*S.vid.dur;audioEl.play().catch(()=>{})}
+  let prevP=S.vid.playhead;
   const loop=()=>{
     if(!S.vid.playing)return;
     let p=(performance.now()-S.vid.t0)/(S.vid.dur*1000);
     if(p>=1){if(S.vid.loop){S.vid.t0=performance.now();p=0}else{p=1;S.vid.playing=0;if(audioEl)audioEl.pause()}}
+    /* sticker sounds fire as the playhead passes each sticker's entrance, the same moments they are recorded at */
+    S.stickers.forEach((st,i)=>{const e=.1+.07*i;if(prevP<e&&p>=e)stkSound(st)});prevP=p;
     S.vid.playhead=Math.max(0,Math.min(1,p));S.vid.progress=S.vid.playhead;
     render();updateVideoUI();
     if(S.vid.playing)requestAnimationFrame(loop);
@@ -3237,7 +3313,7 @@ function stkEdit(patch,final){
   if('v' in patch||'c' in patch){stkStatic(st);stkFramesOf(st)}
   stkSyncUI();render();if(final)commit();
 }
-let STKDRAG=null;
+let STKDRAG=null,STKPINCH=null;
 
 /* ---- the Emoji tab ---- */
 function stkPaint(){
@@ -3317,6 +3393,117 @@ async function stkAudioPlan(dur){
 }
 
 /* ==========================================================================
+   AUTOSAVE — the scene, its screenshots and stickers survive a reload (IndexedDB, this browser only)
+   ========================================================================== */
+const AUTO={ready:false,timer:0,blobs:new Map()};
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('suum',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+const idbGet=k=>idb().then(db=>new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
+const idbSet=(k,v)=>idb().then(db=>new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)}));
+const idbDel=k=>idb().then(db=>new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)}));
+async function autoSave(){
+  if(!AUTO.ready||!('indexedDB' in window))return;
+  try{
+    const st=JSON.parse(sceneState()),blobs=[];
+    for(const im of st.images){let b=AUTO.blobs.get(im.url);if(!b){b=await (await fetch(im.url)).blob();AUTO.blobs.set(im.url,b)}blobs.push(b)}
+    st.images=st.images.map(i=>({name:i.name}));
+    st.bgMedia={...st.bgMedia,type:'none',url:''};   /* backdrop media is session-only */
+    st.vid={...st.vid,active:0,playing:0};
+    await idbSet('scene',{v:1,t:Date.now(),state:st,blobs});
+  }catch(_){}
+}
+const autoSoon=()=>{if(!AUTO.ready)return;clearTimeout(AUTO.timer);AUTO.timer=setTimeout(autoSave,900)};
+async function autoRestore(){
+  try{
+    const rec=await idbGet('scene');if(!rec||!rec.state)return false;
+    const st=rec.state;
+    st.images=rec.blobs.map((b,i)=>{const url=URL.createObjectURL(b);AUTO.blobs.set(url,b);return{url,name:(st.images[i]||{}).name||'image'}});
+    await restoreState(JSON.stringify(st));S.vid.active=0;S.vid.playing=0;sync();
+    say('Restored your last scene');return true;
+  }catch(_){try{await idbDel('scene')}catch(__){}return false}
+}
+addEventListener('visibilitychange',()=>{if(document.hidden)autoSave()});
+addEventListener('pagehide',()=>autoSave());
+$('#newScene').onclick=async()=>{AUTO.ready=false;clearTimeout(AUTO.timer);try{await idbDel('scene')}catch(_){}location.href=location.pathname};
+
+/* ==========================================================================
+   STORE SCREENSHOTS — a headline above the device, exported at every store size at once
+   ========================================================================== */
+function storeArea(W,H){
+  const st=S.store;
+  if(!st.on||!st.title.trim())return{h:H,cy:H/2,w:W,cx:W/2,band:0,fill:.78};
+  /* wide canvases: headline beside the device instead of above it */
+  if(W/H>=1.25)return{h:H,cy:H/2,w:W*.5,cx:st.pos===0?W*.74:W*.26,band:0,side:true,fill:.9};
+  const band=Math.min(H*.34,Math.max(H*.2,st.sub.trim()?H*.3:H*.24)),h=H-band;
+  return{h,cy:st.pos===0?band+h/2:h/2,w:W,cx:W/2,band,fill:.92};
+}
+function wrapText(c,text,maxW){
+  const words=text.split(/\s+/).filter(Boolean),lines=[];let cur='';
+  words.forEach(w=>{const t=cur?cur+' '+w:w;if(c.measureText(t).width>maxW&&cur){lines.push(cur);cur=w}else cur=t});
+  if(cur)lines.push(cur);return lines;
+}
+function drawStoreText(c,W,H){
+  const st=S.store,A=storeArea(W,H);if(!A.band&&!A.side)return;
+  const dark=(()=>{try{return(lum(S.a)+lum(S.b))/2<.55}catch(_){return true}})()||S.tr;
+  const col=dark?'#ffffff':'#17181c';
+  let fs=A.side?Math.min(H*.115,W*.05):Math.min(W*.072,A.band*.3);
+  c.save();c.textAlign=A.side?'left':'center';c.textBaseline='top';
+  const fam=S.brand.font+',"Noto Sans Khmer",sans-serif';
+  let lines;
+  const maxW=A.side?W*.4:W*.84,maxLines=A.side?3:2;
+  for(let k=0;k<10;k++){c.font='700 '+fs+'px '+fam;lines=wrapText(c,st.title,maxW);if(lines.length<=maxLines)break;fs*=.9}
+  const subFs=fs*.5,hasSub=!!st.sub.trim();
+  c.font='500 '+subFs+'px '+fam;const subLines=hasSub?wrapText(c,st.sub,A.side?W*.4:W*.8).slice(0,A.side?3:2):[];
+  const th=lines.length*fs*1.14+(subLines.length?fs*.28+subLines.length*subFs*1.3:0);
+  const tx=A.side?(st.pos===0?W*.07:W*.55):W/2;
+  let y=A.side?(H-th)/2:(st.pos===0?0:H-A.band)+(A.band-th)/2;
+  if(!S.tr){c.shadowColor=dark?'rgba(0,0,0,.25)':'rgba(255,255,255,.25)';c.shadowBlur=fs*.2}
+  c.fillStyle=col;c.font='700 '+fs+'px '+fam;
+  lines.forEach(l=>{c.fillText(l,tx,y);y+=fs*1.14});
+  if(subLines.length){y+=fs*.28;c.globalAlpha=.72;c.font='500 '+subFs+'px '+fam;subLines.forEach(l=>{c.fillText(l,tx,y);y+=subFs*1.3})}
+  c.restore();
+}
+async function storeZip(){
+  const picks=S.store.sizes.filter(i=>SIZES[i]);
+  if(!picks.length)return say('Pick at least one size');
+  if(!S.store.title.trim())say('Tip: add a headline to make these store-ready');
+  const btn=$('#storeZip');btn.disabled=true;
+  const keep={target:S.target,on:S.store.on},files=[];
+  const ext={png:'png',jpg:'jpg',webp:'webp'}[S.fmt];
+  try{
+    S.store.on=1;
+    for(let n=0;n<picks.length;n++){
+      const z=SIZES[picks[n]];say('Rendering '+(n+1)+'/'+picks.length+' · '+z[0]);
+      S.target=[z[1],z[2]];
+      const bl=await blobOf();if(!bl)continue;
+      files.push({name:'suum-'+z[0].toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+z[1]+'x'+z[2]+'.'+ext,data:new Uint8Array(await bl.arrayBuffer())});
+    }
+  }finally{S.target=keep.target;S.store.on=keep.on;btn.disabled=false;sync()}
+  if(!files.length)return say('Nothing rendered — try a smaller size');
+  const zip=makeZIP(files),a=document.createElement('a');a.href=URL.createObjectURL(zip);a.download='suum-store-screenshots.zip';a.click();
+  say('Exported '+files.length+' store size'+(files.length>1?'s':'')+' as a ZIP');
+}
+(function(){
+  const box=$('#storeSizes');box.innerHTML='';
+  SIZES.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.dataset.i=i;
+    b.innerHTML='<span class="swdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>'+z[0]+' <span class="kbd" data-notr>'+z[1]+'×'+z[2]+'</span>';
+    b.onclick=()=>{const k=S.store.sizes.indexOf(i);k>=0?S.store.sizes.splice(k,1):S.store.sizes.push(i);sync();commit()};box.append(b)});
+})();
+$('#storeOn').onclick=()=>{S.store.on=S.store.on?0:1;sync();commit()};
+$('#storeTitle').oninput=e=>{S.store.title=e.target.value;render()};$('#storeTitle').onchange=commit;
+$('#storeSub').oninput=e=>{S.store.sub=e.target.value;render()};$('#storeSub').onchange=commit;
+seg($('#storePos'),['Headline top / left','Headline bottom / right'],i=>{S.store.pos=i;sync();commit()});
+$('#storeZip').onclick=storeZip;
+function storeSync(){
+  const st=S.store;
+  $('#storeOn').setAttribute('aria-pressed',st.on?'true':'false');
+  if($('#storeTitle')!==document.activeElement)$('#storeTitle').value=st.title;
+  if($('#storeSub')!==document.activeElement)$('#storeSub').value=st.sub;
+  $$('#storePos button').forEach((b,i)=>b.setAttribute('aria-pressed',i===st.pos?'true':'false'));
+  $$('#storeSizes .chip').forEach(b=>b.setAttribute('aria-pressed',st.sizes.includes(+b.dataset.i)?'true':'false'));
+  $('#storeZip').textContent='Export '+st.sizes.length+' size'+(st.sizes.length===1?'':'s')+' (ZIP)';
+}
+
+/* ==========================================================================
    LANGUAGE — English / ខ្មែរ. Visible labels are swapped in place from a dictionary,
    so English stays the source of truth and switching back restores it exactly.
    ========================================================================== */
@@ -3380,6 +3567,9 @@ const KM={
  'Delete':'លុប','Outline':'គ្រោង','Solid':'ពេញ','Duotone':'ពីរសម្បុរ','Glass':'កញ្ចក់','Size':'ទំហំ','Reactions':'ប្រតិកម្ម','Celebrate':'អបអរសាទរ','Fun':'សប្បាយ','Clear stickers':'សម្អាតស្ទីកគ័រ',
  'Sticker removed':'បានលុបស្ទីកគ័រ','All stickers cleared':'បានសម្អាតស្ទីកគ័រទាំងអស់','Emoji sound on':'បានបើកសំឡេងអីម៉ូជី','Emoji sound off':'បានបិទសំឡេងអីម៉ូជី',
  'Open this tab to load the emoji.':'បើកផ្ទាំងនេះដើម្បីផ្ទុកអីម៉ូជី។','Icon style':'ស្ទីលរូបតំណាង','Sticker colour':'ពណ៌ស្ទីកគ័រ',
+ 'Crop edges':'កាត់គែម','Top':'ខាងលើ','Bottom':'ខាងក្រោម','Left':'ឆ្វេង','Right':'ស្តាំ','Status bar':'របារស្ថានភាព','Off':'បិទ','Light':'ភ្លឺ','Dark':'ងងឹត','Screen corners':'ជ្រុងអេក្រង់',
+ 'Store screenshots':'រូបថតអេក្រង់សម្រាប់ហាង','Show headline in exports':'បង្ហាញចំណងជើងក្នុងការនាំចេញ','Headline':'ចំណងជើងធំ','Subtitle (optional)':'ចំណងជើងរង (ជម្រើស)',
+ 'Headline top / left':'ចំណងជើងលើ / ឆ្វេង','Headline bottom / right':'ចំណងជើងក្រោម / ស្តាំ','Sizes to export':'ទំហំដែលត្រូវនាំចេញ','New scene':'ឈុតថ្មី','Restored your last scene':'បានស្តារឈុតចុងក្រោយរបស់អ្នក',
  'Device applied':'បានអនុវត្តឧបករណ៍','layout':'ប្លង់','nudge':'រុញ','focus':'មើលពេញ','undo':'មិនធ្វើវិញ','Finish applied to all devices':'បានអនុវត្តពណ៌ទៅគ្រប់ឧបករណ៍','Auto-styled from screenshot colours':'បានរចនាស្វ័យប្រវត្តិតាមពណ៌រូបថត'
 };
 const KM_GROUP={'Phones':'ទូរស័ព្ទ','Foldables':'ទូរស័ព្ទបត់','Tablets':'ថេប្លេត','Computers':'កុំព្យូទ័រ','Wearables':'ឧបករណ៍ពាក់','Web':'គេហទំព័រ'};
@@ -3390,6 +3580,7 @@ const KM_RULES=[
  [/^Showing on device (\d+)$/,(m)=>'កំពុងបង្ហាញលើឧបករណ៍ '+m[1]],
  [/^Screen on device (\d+)$/,(m)=>'អេក្រង់លើឧបករណ៍ '+m[1]],
  [/^· device (\d+)$/i,(m)=>'· ឧបករណ៍ '+m[1]],
+ [/^Export (\d+) sizes? \(ZIP\)$/,(m)=>'នាំចេញ '+m[1]+' ទំហំ (ZIP)'],
  [/^Added (.+)$/,(m)=>'បានបន្ថែម '+m[1]],
  [/^Selected ·$/,()=>'បានជ្រើស ·'],
  [/^Look: (.+)$/,(m)=>'រូបរាង៖ '+m[1]],
@@ -3468,7 +3659,8 @@ try{const q=new URLSearchParams(location.search),shared=[q.get('url'),q.get('tex
   if(shared||nShared)history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
 /* offline support: cache the app shell (needs http/https, not file://) */
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
-try{const hm=location.hash.match(/s=(.+)/);if(hm)restoreState(decodeURIComponent(escape(atob(hm[1]))))}catch(_){}
+let hashScene=false;try{const hm=location.hash.match(/s=(.+)/);if(hm){hashScene=true;restoreState(decodeURIComponent(escape(atob(hm[1]))))}}catch(_){}
+(hashScene?Promise.resolve(false):autoRestore()).finally(()=>{AUTO.ready=true});
 </script>
 </body>
 </html>
