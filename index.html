@@ -74,6 +74,8 @@ html[lang=km] *{font-family:"Inter","Noto Sans Khmer",system-ui,sans-serif!impor
 html[lang=km] .brand h1,html[lang=km] .brand h1 *{font-family:"Space Grotesk","Noto Sans Khmer",sans-serif!important}
 html[lang=km] .btn-primary,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=km] .mtabs button{white-space:nowrap}
 html[lang=km] .tile,html[lang=km] .tiny-btn,html[lang=km] .seg button,html[lang=km] .chip,html[lang=km] .btn-ghost,html[lang=km] .live-btn{line-height:1.55}
+.iconbtn.armed{color:#fff;background:var(--danger,#E5484D);border-color:var(--danger,#E5484D)}
+@media(max-width:410px){.brand h1{display:none}}
 .iconbtn.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
 .btn-primary{display:flex;align-items:center;gap:9px;height:38px;padding:0 16px;border:0;border-radius:10px;color:#fff;font-weight:600;
   background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -12px var(--accent),inset 0 1px 0 rgba(255,255,255,.3);transition:.16s}
@@ -408,7 +410,15 @@ body.focus .stage-hint{opacity:.6}
   .topbar{padding:0 11px;gap:8px}
   .brand .tag,.proj{display:none}
   .brand h1{font-size:16px}
-  #undoBtn,#redoBtn{display:none}
+  /* every control stays on the phone's top bar; Export shrinks to an icon */
+  .topbar{gap:5px;padding:0 8px}
+  .topbar .top-spacer{flex:1 1 0;min-width:0}
+  .topbar .iconbtn{width:34px;height:34px;border-radius:9px}
+  .topbar .iconbtn svg{width:17px;height:17px}
+  .iconbtn#lang{min-width:34px;padding:0 5px;font-size:10px}
+  #expTop{width:38px;height:38px;padding:0;justify-content:center;gap:0;border-radius:10px;flex:none}
+  #expTop span{display:none}
+  #expTop svg{width:18px;height:18px}
   .main{display:flex;flex-direction:column;overflow:auto}
   /* live preview stays pinned while the panels scroll underneath */
   .stage{order:0;flex:none;position:sticky;top:0;z-index:15;min-height:0;padding:8px 12px;gap:0;overflow:hidden;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,.7)}
@@ -477,10 +487,11 @@ body.focus .stage-hint{opacity:.6}
     <div class="top-spacer"></div>
     <button class="iconbtn" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
     <button class="iconbtn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="iconbtn" id="resetBtn" title="Reset scene — tap twice" aria-label="Reset scene"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg></button>
     <button class="iconbtn" id="focusBtn" title="Focus preview (F)" aria-label="Focus preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3m13 5h3a2 2 0 0 0 2-2v-3"/></svg></button>
     <button class="iconbtn" id="th" title="Switch theme" aria-label="Switch theme"></button>
     <button class="iconbtn" id="lang" title="ប្តូរទៅភាសាខ្មែរ" aria-label="Language" data-notr>ខ្មែរ</button>
-    <button class="btn-primary" id="expTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Export</span></button>
+    <button class="btn-primary" id="expTop" title="Export" aria-label="Export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Export</span></button>
   </header>
 
   <!-- ===== WORKSPACE ===== -->
@@ -1963,12 +1974,12 @@ function tick(t){
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
 function say(msg){$('#status').textContent=msg;const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2400)}
 
-let hist=[],hi=-1;
-function snap(){return JSON.stringify({store:{...S.store,sizes:[...S.store.sizes]},stickers:S.stickers.map(s=>({...s})),stkSel:S.stkSel,target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
-function commit(){hist=hist.slice(0,hi+1);hist.push(snap());hi=hist.length-1;histUI();autoSoon()}
+let hist=[],histI=[],hi=-1;
+function snap(){return JSON.stringify({notes:S.notes.map(n=>({...n})),store:{...S.store,sizes:[...S.store.sizes]},stickers:S.stickers.map(s=>({...s})),stkSel:S.stkSel,target:S.target||null,slots:S.slots,n:S.n,sel:S.sel,ratio:S.ratio,fit:S.fit,dark:S.dark,shadow:S.shadow,a:S.a,b:S.b,bg:S.bg,tr:S.tr,fmt:S.fmt,k:S.k})}
+function commit(){hist=hist.slice(0,hi+1);histI=histI.slice(0,hi+1);hist.push(snap());histI.push(S.images.slice());hi=hist.length-1;histUI();autoSoon()}
 function restore(str){const o=JSON.parse(str);Object.assign(S,o);sync();render()}
-function undo(){if(hi>0){hi--;restore(hist[hi]);say('Undone')}}
-function redo(){if(hi<hist.length-1){hi++;restore(hist[hi]);say('Redone')}}
+function undo(){if(hi>0){hi--;if(histI[hi])S.images=histI[hi].slice();restore(hist[hi]);histUI();say('Undone')}}
+function redo(){if(hi<hist.length-1){hi++;if(histI[hi])S.images=histI[hi].slice();restore(hist[hi]);histUI();say('Redone')}}
 function histUI(){$('#undoBtn').disabled=hi<=0;$('#redoBtn').disabled=hi>=hist.length-1}
 
 /* ==========================================================================
@@ -3106,6 +3117,23 @@ async function pasteImage(){
 $('#pasteBtn').onclick=pasteImage;
 
 $('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
+/* reset: tap once to arm (turns red), tap again within 3 s to clear everything — Undo brings it all back */
+function resetAll(){
+  if(LIVESITE.on)stopLive(true);
+  Object.assign(S,{slots:preset(1),n:1,sel:0,armed:null,stickers:[],stkSel:-1,notes:[],noteSel:-1,target:null,ratio:1,land:0,fit:0,dark:0,shadow:40,
+    bg:0,a:BGS[0][0],b:BGS[0][1],tr:0,keys:[],captions:[],imgTool:null,customFrame:null,
+    d3:{on:0,depth:0,mode:'yaw'},bgMedia:{type:'none',url:'',blur:0,tilt:0,reflect:0},
+    store:{on:0,title:'Your idea, framed.',sub:'',pos:0,sizes:[0,3,4]}});
+  S.images=[];STK_RT.clear();setView(1,0,0);
+  S.vid.active=0;S.vid.playing=0;S.vid.playhead=0;
+  sync();commit();say('Scene reset — Undo brings it back');
+}
+$('#resetBtn').onclick=()=>{
+  const b=$('#resetBtn');
+  if(b.classList.contains('armed')){clearTimeout(b._t);b.classList.remove('armed');resetAll();return}
+  b.classList.add('armed');say('Tap again to reset everything');
+  clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('armed'),3000);
+};
 function setFocus(on){document.body.classList.toggle('focus',on);$('#focusBtn').classList.toggle('on',on);
   try{if(on&&!document.fullscreenElement&&matchMedia('(min-width:861px)').matches)document.documentElement.requestFullscreen().catch(()=>{});
       if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(_){}
@@ -3570,6 +3598,7 @@ const KM={
  'Crop edges':'កាត់គែម','Top':'ខាងលើ','Bottom':'ខាងក្រោម','Left':'ឆ្វេង','Right':'ស្តាំ','Status bar':'របារស្ថានភាព','Off':'បិទ','Light':'ភ្លឺ','Dark':'ងងឹត','Screen corners':'ជ្រុងអេក្រង់',
  'Store screenshots':'រូបថតអេក្រង់សម្រាប់ហាង','Show headline in exports':'បង្ហាញចំណងជើងក្នុងការនាំចេញ','Headline':'ចំណងជើងធំ','Subtitle (optional)':'ចំណងជើងរង (ជម្រើស)',
  'Headline top / left':'ចំណងជើងលើ / ឆ្វេង','Headline bottom / right':'ចំណងជើងក្រោម / ស្តាំ','Sizes to export':'ទំហំដែលត្រូវនាំចេញ','New scene':'ឈុតថ្មី','Restored your last scene':'បានស្តារឈុតចុងក្រោយរបស់អ្នក',
+ 'Reset scene — tap twice':'កំណត់ឈុតឡើងវិញ — ចុចពីរដង','Reset scene':'កំណត់ឈុតឡើងវិញ','Tap again to reset everything':'ចុចម្តងទៀតដើម្បីកំណត់ទាំងអស់ឡើងវិញ','Scene reset — Undo brings it back':'បានកំណត់ឈុតឡើងវិញ — ចុច មិនធ្វើវិញ ដើម្បីយកត្រឡប់មកវិញ',
  'Device applied':'បានអនុវត្តឧបករណ៍','layout':'ប្លង់','nudge':'រុញ','focus':'មើលពេញ','undo':'មិនធ្វើវិញ','Finish applied to all devices':'បានអនុវត្តពណ៌ទៅគ្រប់ឧបករណ៍','Auto-styled from screenshot colours':'បានរចនាស្វ័យប្រវត្តិតាមពណ៌រូបថត'
 };
 const KM_GROUP={'Phones':'ទូរស័ព្ទ','Foldables':'ទូរស័ព្ទបត់','Tablets':'ថេប្លេត','Computers':'កុំព្យូទ័រ','Wearables':'ឧបករណ៍ពាក់','Web':'គេហទំព័រ'};
