@@ -3149,7 +3149,8 @@ document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement
 function railFollow(){
   const b=$('.mtabs button[aria-pressed="true"][data-g]');if(!b)return;
   const r=b.parentElement;if(!r||!r.classList.contains('mrail')||!r.clientWidth)return;
-  r.scrollTo({left:Math.max(0,b.offsetLeft-r.clientWidth/2+b.offsetWidth/2),behavior:'smooth'});
+  const br=b.getBoundingClientRect(),rr=r.getBoundingClientRect();
+  r.scrollTo({left:Math.max(0,r.scrollLeft+(br.left-rr.left)-(rr.width-br.width)/2),behavior:'smooth'});
 }
 $('#mAdd').onclick=()=>$('#file').click();
 const RIGHT_TABS=['style','smart','canvas','3d','export','video'];
