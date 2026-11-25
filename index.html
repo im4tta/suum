@@ -403,7 +403,7 @@ body.focus .stage-hint{opacity:.6}
   .panel-inner{padding:14px 11px 22px}
 }
 @media(max-width:860px){
-  :root{--topbar:58px;--statusbar:30px;--mtabs:60px}
+  :root{--topbar:58px;--statusbar:30px;--mtabs:68px}
   .app{grid-template-rows:var(--topbar) 1fr var(--mtabs) var(--statusbar)}
   .topbar{padding:0 11px;gap:8px}
   .brand .tag,.proj{display:none}
@@ -414,7 +414,6 @@ body.focus .stage-hint{opacity:.6}
   .stage{order:0;flex:none;position:sticky;top:0;z-index:15;min-height:0;padding:8px 12px;gap:0;overflow:hidden;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,.7)}
   .stage::before{display:none}
   .stage .dropzone,.stage .stage-hint{display:none}
-  .fab{display:grid}
   .artboard{max-width:min(100%,640px);margin:0 auto}
   .ab-bar{height:30px;padding:0 11px}
   .ab-body{padding:6px}
@@ -446,12 +445,23 @@ body.focus .stage-hint{opacity:.6}
   section[data-group="canvas"]{order:8}
   section[data-group="3d"]{order:9;padding-bottom:24px}
   .dgrid{grid-template-columns:1fr 1fr}
-  .mtabs{display:flex;align-items:stretch;background:var(--panel);border-top:1px solid var(--line);z-index:20;overflow-x:auto;scrollbar-width:none}
-  .mtabs::-webkit-scrollbar{display:none}
-  .mtabs button{flex:none;min-width:76px;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:600;padding:7px 6px 5px;position:relative;min-height:56px}
-  .mtabs button svg{width:19px;height:19px}
-  .mtabs button[aria-pressed="true"]{color:var(--accent)}
-  .mtabs button[aria-pressed="true"]::before{content:"";position:absolute;top:0;left:24%;right:24%;height:2px;border-radius:0 0 3px 3px;background:var(--accent)}
+  /* bottom nav: a glow rail on each side of a raised + (add screenshots) */
+  .mtabs{display:grid;grid-template-columns:minmax(0,1fr) 76px minmax(0,1fr);align-items:stretch;background:linear-gradient(180deg,var(--panel),var(--panel2));border-top:1px solid var(--line);z-index:20;position:relative}
+  .mrail{display:flex;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:0 2px 3px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 18px),transparent)}
+  #mrailR{-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 10px),transparent);mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 10px),transparent)}
+  .mrail::-webkit-scrollbar{display:none}
+  .mtabs .mrail button{flex:none;width:52px;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:9.5px;font-weight:600;position:relative;scroll-snap-align:center;-webkit-tap-highlight-color:transparent}
+  .mtabs .ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;transition:transform .25s cubic-bezier(.3,1.4,.5,1),background .2s,box-shadow .2s}
+  .mtabs .ic svg{width:20px;height:20px}
+  .mtabs .lb{height:11px;line-height:11px;opacity:0;transform:translateY(-3px);transition:.2s;white-space:nowrap}
+  .mtabs .mrail button[aria-pressed="true"]{color:var(--txt)}
+  .mtabs .mrail button[aria-pressed="true"] .ic{transform:translateY(-5px);background:linear-gradient(145deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 18px -4px color-mix(in srgb,var(--accent) 70%,transparent)}
+  .mtabs .mrail button[aria-pressed="true"] .lb{opacity:1;transform:translateY(-5px)}
+  .mtabs .madd{align-self:start;justify-self:center;width:56px;height:56px;margin-top:-24px;border-radius:50%;border:5px solid var(--bg);color:#fff;display:grid;place-items:center;background:linear-gradient(145deg,var(--accent),var(--accent2));box-shadow:0 10px 22px -6px color-mix(in srgb,var(--accent) 65%,transparent);transition:transform .15s;-webkit-tap-highlight-color:transparent}
+  .mtabs .madd svg{width:24px;height:24px}
+  .mtabs .madd:active{transform:scale(.92)}
+  .mtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .status-shortcuts{display:none}
   .toast{bottom:calc(var(--statusbar) + var(--mtabs) + 14px)}
   body.focus .main{grid-template-columns:1fr}
@@ -823,16 +833,9 @@ body.focus .stage-hint{opacity:.6}
 
   <!-- mobile tabs -->
   <nav class="mtabs" aria-label="Panels">
-    <button data-g="devices" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>Devices</button>
-    <button data-g="screens" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Screens</button>
-    <button data-g="emoji" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.2a4.6 4.6 0 0 0 8 0"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/></svg>Emoji</button>
-    <button data-g="style" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a9 9 0 1 0 9 9c-5 0-9-4-9-9Z"/></svg>Style</button>
-    <button data-g="export" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Export</button>
-    <button data-g="video" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>Video</button>
-    <button data-g="layers" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/></svg>Layers</button>
-    <button data-g="smart" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1"/></svg>Smart</button>
-    <button data-g="canvas" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg>Canvas</button>
-    <button data-g="3d" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg>3D</button>
+    <div class="mrail" id="mrailL"><button data-g="devices" aria-pressed="true" aria-label="Devices"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span><span class="lb">Devices</span></button><button data-g="screens" aria-pressed="false" aria-label="Screens"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><span class="lb">Screens</span></button><button data-g="emoji" aria-pressed="false" aria-label="Emoji"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.2a4.6 4.6 0 0 0 8 0"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/></svg></span><span class="lb">Emoji</span></button><button data-g="style" aria-pressed="false" aria-label="Style"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a9 9 0 1 0 9 9c-5 0-9-4-9-9Z"/></svg></span><span class="lb">Style</span></button><button data-g="canvas" aria-pressed="false" aria-label="Canvas"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg></span><span class="lb">Canvas</span></button></div>
+    <button class="madd" id="mAdd" type="button" aria-label="Add screenshots" title="Add screenshots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <div class="mrail" id="mrailR"><button data-g="export" aria-pressed="false" aria-label="Export"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span><span class="lb">Export</span></button><button data-g="video" aria-pressed="false" aria-label="Video"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg></span><span class="lb">Video</span></button><button data-g="3d" aria-pressed="false" aria-label="3D"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg></span><span class="lb">3D</span></button><button data-g="layers" aria-pressed="false" aria-label="Layers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/></svg></span><span class="lb">Layers</span></button><button data-g="smart" aria-pressed="false" aria-label="Smart"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1"/></svg></span><span class="lb">Smart</span></button></div>
   </nav>
 
   <footer class="statusbar">
@@ -3114,27 +3117,34 @@ function setFocus(on){document.body.classList.toggle('focus',on);$('#focusBtn').
 $('#focusBtn').onclick=()=>setFocus(!document.body.classList.contains('focus'));
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('focus'))setFocus(false)});
 
+/* keep the active tool centred in its rail, and wire the + */
+function railFollow(){
+  const b=$('.mtabs button[aria-pressed="true"][data-g]');if(!b)return;
+  const r=b.parentElement;if(!r||!r.classList.contains('mrail')||!r.clientWidth)return;
+  r.scrollTo({left:Math.max(0,b.offsetLeft-r.clientWidth/2+b.offsetWidth/2),behavior:'smooth'});
+}
+$('#mAdd').onclick=()=>$('#file').click();
 const RIGHT_TABS=['style','smart','canvas','3d','export','video'];
 const LEFT_TABS=['devices','layers','screens','emoji'];
-$$('.mtabs button').forEach(b=>b.onclick=()=>{
+$$('.mtabs button[data-g]').forEach(b=>b.onclick=()=>{
   const g=b.dataset.g;document.body.dataset.tab=g;if(g==='emoji')stkInit();
   if(RIGHT_TABS.includes(g))document.body.dataset.rtab=g;
   if(LEFT_TABS.includes(g))document.body.dataset.ltab=g;
   $$('.rtabs button[data-ltab]').forEach(x=>press(x,x.dataset.ltab===document.body.dataset.ltab));
-  $$('.mtabs button').forEach(x=>press(x,x.dataset.g===g));
+  $$('.mtabs button[data-g]').forEach(x=>press(x,x.dataset.g===g));
   $$('.rtabs button').forEach(x=>press(x,x.dataset.rtab===document.body.dataset.rtab));
-  $('.main').scrollTop=0;
+  $('.main').scrollTop=0;railFollow();
 });
 $$('.rtabs button').forEach(b=>b.onclick=()=>{
   const g=b.dataset.rtab;document.body.dataset.rtab=g;document.body.dataset.tab=g;
   $$('.rtabs button').forEach(x=>press(x,x.dataset.rtab===g));
-  $$('.mtabs button').forEach(x=>press(x,x.dataset.g===g));
+  $$('.mtabs button[data-g]').forEach(x=>press(x,x.dataset.g===g));
   $('.panel-right').scrollTop=0;
 });
 $$('.rtabs button[data-ltab]').forEach(b=>b.onclick=()=>{
   const g=b.dataset.ltab;document.body.dataset.ltab=g;document.body.dataset.tab=g;if(g==='emoji')stkInit();
   $$('.rtabs button[data-ltab]').forEach(x=>press(x,x.dataset.ltab===g));
-  $$('.mtabs button').forEach(x=>press(x,x.dataset.g===g));
+  $$('.mtabs button[data-g]').forEach(x=>press(x,x.dataset.g===g));
   $('.panel-left').scrollTop=0;
 });
 function updateTabArrows(){
